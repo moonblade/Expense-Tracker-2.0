@@ -69,3 +69,5 @@ node_modules/
 .dataconnect
 functions/venv
 functions/__pycache__
+__pycache__
+functions/utils/__pycache__
