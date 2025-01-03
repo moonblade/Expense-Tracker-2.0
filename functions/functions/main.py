@@ -4,10 +4,14 @@
 
 from firebase_functions import https_fn
 from firebase_admin import initialize_app
+
+try:
+    initialize_app()
+except ValueError:
+    pass
+
 from utils.sms import save_sms_from_req
 from utils.token import get_token_from_req
-
-initialize_app()
 
 @https_fn.on_request()
 def get_token(req: https_fn.Request) -> https_fn.Response:
