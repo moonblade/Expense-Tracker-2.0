@@ -8,19 +8,19 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
 #### Infrastructure
 
-> Firestore
+- Firestore
 
     Data storage is in gcp firestore.
 
-> Firebase auth
+- Firebase auth
 
     Authenticate users with simple email and password
 
-> Firebase cloud functions
+- Firebase cloud functions
 
     Validate email and password and save sms data to firestore.
 
-> iOS shortcut
+- iOS shortcut
 
     SMS data is read by an ios shortcut and sent to a firebase cloud function.
 
