@@ -26,7 +26,6 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
 ### ChangeLog
 
-> 2025-01-02
-
+- 2025-01-02
     - Added firebase cloud function that takes email and password, sms and sender and saves it to firestore
     - Created an ios shortcut that calls this http function every time a new sms is received
