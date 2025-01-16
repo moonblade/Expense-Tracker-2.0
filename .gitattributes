@@ -2,3 +2,4 @@ secretfile filter=git-crypt diff=git-crypt
 secrets/** filter=git-crypt diff=git-crypt
 functions/getToken/functions/secrets/** filter=git-crypt diff=git-crypt
 functions/functions/secrets/** filter=git-crypt diff=git-crypt
+app/secrets/** filter=git-crypt diff=git-crypt
