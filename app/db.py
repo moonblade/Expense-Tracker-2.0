@@ -1,4 +1,5 @@
 from firebase_admin import initialize_app, firestore, credentials
+from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
 
 try:
@@ -21,7 +22,8 @@ def read_sms_from_last_30_days(email):
 
     # Query the Firestore collection
     sms_collection = db.collection("sms").document(email).collection("messages")
-    query = sms_collection.where("timestamp", ">=", start_timestamp).stream()
+    filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
+    query = sms_collection.where(filter=filter_condition).order_by("timestamp").stream()
 
     # Collect the results
     messages = []
