@@ -1,15 +1,8 @@
 import datetime
 import json
 import re
+from secrets.constants import reject_keywords, regexes
 
-regexes = [{
-    "regex": r"ICICI Bank Acct (?P<account_no>\w+) debited for Rs (?P<amount>\d+\.\d{2}) on (?P<date>\d{2}-[A-Za-z]{3}-\d{2}); (?P<credited_to>.+?) credited\. UPI:(?P<upi_id>\d+)\. Call (?P<dispute_number>\d+) for dispute\. SMS BLOCK (?P<block_code>\w+) to (?P<block_number>\d+)\.",
-    "tag": "icici_bank"
-}]
-
-reject_keywords = [
-    "is OTP for txn of INR"
-]
 
 def extract_sms_details(regex: str, sms: str) -> dict:
     """
@@ -47,7 +40,7 @@ def parseMessages(messages):
                 break
 
         if not message.get("matched"):
-            print("REGEX NOT MATCHED")
+            print("The following string wasn't matched")
             print(sms)
             # print timestamp in iso 8601 format
             print(f"Timestamp: {datetime.datetime.fromtimestamp(timestamp).isoformat()}")
@@ -63,7 +56,10 @@ def isValidSms(sms):
 
 def isValidSender(sender):
     # icici bank
+    if "-" not in sender:
+        return False
     if "ICICI" in sender:
         return True
+    print(sender)
     return False
     return True
