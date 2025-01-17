@@ -1,6 +1,8 @@
+from models import Sender
 from firebase_admin import initialize_app, firestore, credentials
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
+from functools import cache
 
 try:
     cred = credentials.Certificate("./secrets/serviceAccountKey.json")
@@ -31,3 +33,20 @@ def read_sms_from_last_30_days(email):
         messages.append(doc.to_dict())
 
     return messages
+
+def add_sender(sender: Sender):
+    sender_collection = db.collection("sender")
+    if sender_collection.document(sender.name).get().exists:
+        return
+    sender_collection.document(sender.name).set(sender.dict())
+    get_senders.cache_clear()
+
+@cache
+def get_senders():
+    sender_collection = db.collection("sender")
+    query = sender_collection.stream()
+    senders = []
+    for doc in query:
+        doc = doc.to_dict()
+        senders.append(Sender(**doc))
+    return senders

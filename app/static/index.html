@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <!-- Import Material-UI and Tailwind for better design -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mui/material@5.13.0/dist/material-ui.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.0/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1e1e2f;
+            color: #e5e5e5;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <header class="bg-gray-800 shadow-md p-4">
+        <h1 class="text-2xl font-bold">Expense Tracker</h1>
+    </header>
+
+    <main class="container mx-auto mt-8">
+        <div>
+            <ul class="flex border-b border-gray-700">
+                <li class="-mb-px mr-1">
+                    <a href="#one" class="bg-gray-800 inline-block py-2 px-4 text-gray-200 hover:text-white font-semibold border-l border-t border-r border-gray-700 rounded-t">One</a>
+                </li>
+                <li class="mr-1">
+                    <a href="#senders" class="bg-gray-800 inline-block py-2 px-4 text-gray-200 hover:text-white font-semibold border-l border-t border-r border-gray-700 rounded-t">Senders</a>
+                </li>
+            </ul>
+
+            <div class="bg-gray-800 p-4 rounded-b">
+                <div id="one" class="tab-content hidden">
+                    <p>Content for Tab One.</p>
+                </div>
+                <div id="senders" class="tab-content hidden">
+                    <h2 class="text-lg font-bold">Senders</h2>
+                    <div id="senders-list" class="mt-4">
+                        <p>Loading senders...</p>
+                    </div>
+                    <button class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="save-senders">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function switchTabs(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(tabLink => {
+            tabLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchTabs(e.target.getAttribute('href').substring(1));
+            });
+        });
+
+        async function fetchSenders() {
+            const response = await fetch('/senders');
+            const data = await response.json();
+            const sendersList = document.getElementById('senders-list');
+
+            sendersList.innerHTML = '';
+            data.senders.forEach(sender => {
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'flex items-center justify-between p-2 bg-gray-700 rounded mt-2';
+                senderDiv.dataset.name = sender.name;
+
+                senderDiv.innerHTML = `
+                    <span>${sender.name} (${sender.comparison_type})</span>
+                    <div>
+                        <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded mx-1" data-status="accepted">Approve</button>
+                        <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded mx-1" data-status="rejected">Reject</button>
+                        <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded mx-1" data-status="unprocessed">Reset</button>
+                    </div>
+                `;
+
+                sendersList.appendChild(senderDiv);
+            });
+
+            document.querySelectorAll('button[data-status]').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const parent = e.target.closest('div');
+                    parent.dataset.status = e.target.dataset.status;
+                });
+            });
+        }
+
+        async function saveSenders() {
+            const senders = Array.from(document.querySelectorAll('#senders-list > div')).map(senderDiv => {
+                return {
+                    name: senderDiv.dataset.name,
+                    status: senderDiv.dataset.status || 'unprocessed'
+                };
+            });
+
+            await fetch('/update_senders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ senders })
+            });
+
+            alert('Changes saved successfully!');
+        }
+
+        document.getElementById('save-senders').addEventListener('click', saveSenders);
+
+        fetchSenders();
+    </script>
+</body>
+</html>
+

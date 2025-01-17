@@ -2,6 +2,9 @@ import datetime
 import json
 import re
 
+from models import Sender, SenderComparisonType, SenderStatus
+from db import add_sender, get_senders
+
 
 reject_keywords = []
 regexes = []
@@ -56,12 +59,18 @@ def isValidSms(sms):
             return False
     return True
 
-def isValidSender(sender):
-    # icici bank
+def isValidSender(sender: str):
+    senders = get_senders()
     if "-" not in sender:
         return False
-    if "ICICI" in sender:
-        return True
-    print(sender)
+    for senderItem in senders:
+        if senderItem.comparison_type == SenderComparisonType.contains:
+            if senderItem.name in sender:
+                if senderItem.status == SenderStatus.approved:
+                    return True
+                else:
+                    return False
+    name = sender.split("-")[1]
+    senderObject = Sender(name=name)
+    add_sender(senderObject)
     return False
-    return True
