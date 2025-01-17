@@ -21,13 +21,16 @@ jobs:
     - name: Install git-crypt
       run: sudo apt-get install -y git-crypt
 
-    # Set up GPG key for git-crypt unlock
+    # Import GPG private key and unlock git-crypt
     - name: Unlock git-crypt
       run: |
-        mkdir -p ~/.gnupg
-        echo "${{ secrets.GIT_CRYPT_GPG_KEY }}" | gpg --batch --import
-        gpg --list-secret-keys
+        echo "${{ secrets.GIT_CRYPT_GPG_KEY }}" > private.key
+        gpg --batch --yes --pinentry-mode loopback --import private.key
+        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --decrypt
         git-crypt unlock
+      env:
+        GPG_KEY: ${{ secrets.GIT_CRYPT_GPG_KEY }}  # Using secret for private key
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}  # Secret for the passphrase
 
     # Set up Node.js
     - name: Set up Node.js
