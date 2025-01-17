@@ -1,1 +1,4 @@
-firebase_admin
+firebase-admin==6.6.0
+fastapi==0.100.0
+google-cloud-firestore==2.20.0
+uvicorn==0.23.1

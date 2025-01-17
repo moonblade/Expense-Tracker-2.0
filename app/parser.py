@@ -36,7 +36,7 @@ def parseMessages(messages):
             details = extract_sms_details(regex["regex"], sms)
             if details:
                 message["matched"] = True
-                # print(json.dumps(details, indent=2))
+                print(json.dumps(details, indent=2))
                 break
 
         if not message.get("matched"):
