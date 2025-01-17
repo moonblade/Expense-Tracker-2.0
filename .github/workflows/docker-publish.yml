@@ -17,6 +17,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: yarn
+
+    # Build the React app
+    - name: Build React App
+      run: |
+        cd frontend
+        yarn install
+        yarn build
+        mkdir -p ../app/static/expense-tracker
+        mv build/* ../app/static/expense-tracker
+
     # Log in to GitHub Container Registry
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
