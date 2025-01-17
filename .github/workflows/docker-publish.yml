@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: 18
         cache: yarn
-        cache-dependency-path: '**/package-lock.json'
+        cache-dependency-path: 'frontend/yarn.lock'
 
     # Build the React app
     - name: Build React App
