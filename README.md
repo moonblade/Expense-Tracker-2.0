@@ -35,3 +35,7 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
 - 2025-01-17
     - Created dockerfile to build and run it as fastapi
+    - Created a react frontend component after a false start with basic html js. The react app now has google login and a dark/light theme.
+    ![](https://i.imgur.com/EkMXPq2.png)
+
+
