@@ -17,6 +17,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Install git-crypt
+    - name: Install git-crypt
+      run: sudo apt-get install -y git-crypt
+
+    # Set up GPG key for git-crypt unlock
+    - name: Unlock git-crypt
+      run: |
+        mkdir -p ~/.gnupg
+        echo "${{ secrets.GIT_CRYPT_GPG_KEY }}" | gpg --batch --import
+        gpg --list-secret-keys
+        git-crypt unlock
+
     # Set up Node.js
     - name: Set up Node.js
       uses: actions/setup-node@v3
