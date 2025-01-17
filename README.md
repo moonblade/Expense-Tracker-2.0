@@ -24,8 +24,14 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
     SMS data is read by an ios shortcut and sent to a firebase cloud function.
 
-### ChangeLog
+### Log
 
 - 2025-01-02
     - Added firebase cloud function that takes email and password, sms and sender and saves it to firestore
     - Created an ios shortcut that calls this http function every time a new sms is received
+
+- 2025-01-16
+    - Added client code to read data from firestore and parse any ICICI bank transactions
+
+- 2025-01-17
+    - Created dockerfile to build and run it as fastapi
