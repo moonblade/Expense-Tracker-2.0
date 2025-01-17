@@ -1,8 +1,10 @@
 import datetime
 import json
 import re
-from secrets.constants import reject_keywords, regexes
 
+
+reject_keywords = []
+regexes = []
 
 def extract_sms_details(regex: str, sms: str) -> dict:
     """
