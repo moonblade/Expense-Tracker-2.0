@@ -39,12 +39,3 @@ jobs:
     - name: Push Docker image
       run: |
         docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }}
-
-
-    - name: Set image visibility to private
-      run: |
-        curl -X PATCH \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/user/packages/container/${{ github.repository_owner }}/expense-tracker/versions \
-          -d '{"visibility":"private"}'
