@@ -11,7 +11,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def ui() -> str:
-    return FileResponse(os.path.join("static", "index.html"))
+    return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
 
 @app.get("/update")
 def update():
