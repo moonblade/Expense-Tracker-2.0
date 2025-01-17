@@ -23,6 +23,7 @@ jobs:
       with:
         node-version: 18
         cache: yarn
+      working-directory: frontend
 
     # Build the React app
     - name: Build React App
