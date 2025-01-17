@@ -17,20 +17,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Install git-crypt
-    - name: Install git-crypt
-      run: sudo apt-get install -y git-crypt
-
-    # Import GPG private key and unlock git-crypt
-    - name: Unlock git-crypt
-      run: |
-        echo "${{ secrets.GIT_CRYPT_GPG_KEY }}" > private.key
-        gpg --batch --yes --pinentry-mode loopback --import private.key
-        echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --decrypt
-        git-crypt unlock
+    - name: Unlock secrets
+      uses: sliteteam/github-action-git-crypt-unlock@1.2.0
       env:
-        GPG_KEY: ${{ secrets.GIT_CRYPT_GPG_KEY }}  # Using secret for private key
-        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}  # Secret for the passphrase
+        GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
 
     # Set up Node.js
     - name: Set up Node.js
