@@ -25,13 +25,18 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    # Extract short commit SHA
+    - name: Set short commit SHA
+      id: vars
+      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
     # Build the Docker image
     - name: Build Docker image
       run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ github.run_id }} app/
+        docker build -t ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }} app/
 
     # Push the Docker image to GitHub Container Registry
     - name: Push Docker image
       run: |
-        docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ github.run_id }}
+        docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }}
 
