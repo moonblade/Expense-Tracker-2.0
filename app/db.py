@@ -1,3 +1,4 @@
+from typing import List
 from models import Sender
 from firebase_admin import initialize_app, firestore, credentials
 from google.cloud.firestore_v1.base_query import FieldFilter
@@ -40,6 +41,12 @@ def add_sender(sender: Sender):
         return
     sender_collection.document(sender.name).set(sender.dict())
     get_senders.cache_clear()
+
+def update_senders(senders: List[Sender]):
+    sender_collection = db.collection("sender")
+
+    for sender in senders:
+        sender_collection.document(sender.name).set(sender.dict())
 
 @cache
 def get_senders():
