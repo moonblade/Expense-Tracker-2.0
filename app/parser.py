@@ -68,6 +68,8 @@ def isValidSender(sender: str):
             if senderItem.name in sender:
                 if senderItem.status == SenderStatus.approved:
                     return True
+                elif senderItem.status == SenderStatus.unapproved:
+                    return True
                 else:
                     return False
     name = sender.split("-")[1]

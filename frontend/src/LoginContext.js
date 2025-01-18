@@ -5,6 +5,21 @@ import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from
 
 const LoginContext = createContext();
 
+export async function getIdToken() {
+  try {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const idToken = await currentUser.getIdToken();
+      return idToken;
+    } else {
+      throw new Error("User not logged in");
+    }
+  } catch (error) {
+    console.error("Error getting ID token: ", error.message);
+    throw error;
+  }
+}
+
 export function useLogin() {
   return useContext(LoginContext);
 }
@@ -33,7 +48,7 @@ export function LoginProvider({ children }) {
   };
 
   return (
-    <LoginContext.Provider value={{ user, login, logout }}>
+    <LoginContext.Provider value={{ user, login, logout, getIdToken }}>
       {children}
     </LoginContext.Provider>
   );

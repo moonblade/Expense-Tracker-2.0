@@ -1,9 +1,10 @@
 import os
+from auth import validate_token
 from typing import List
 from models import UpdateSendersRequest
 from fastapi import FastAPI
 from parser import parseMessages
-from db import get_senders, read_sms_from_last_30_days, update_senders
+from db import get_senders, moveMessages, read_sms_from_last_30_days, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# def get_api_key(credentials: HTTPAuthorizationCredentials = Security(auth_bearer)) -> str:
+    # pass
 
 @app.get("/")
 def ui() -> str:
