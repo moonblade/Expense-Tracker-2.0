@@ -14,7 +14,7 @@ def read_messages(email, days_ago_start=30):
 
     sms_collection = db.collection("sms").document(email).collection("messages")
     filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
-    query = sms_collection.where(filter=filter_condition).order_by("timestamp").stream()
+    query = sms_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
 
     messages = []
     for doc in query:

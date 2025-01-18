@@ -1,4 +1,3 @@
-// MainContent.js
 import React, { useContext, useState } from "react";
 import {
   Box,
@@ -14,7 +13,9 @@ import {
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import CancelIcon from "@mui/icons-material/Cancel";
+import MessageIcon from "@mui/icons-material/Message";
 import Senders from "./Senders";
+import Messages from "./Messages"; // Import the Messages component
 import LoginContext from "./LoginContext";
 
 const drawerWidth = 240;
@@ -76,24 +77,19 @@ function MainContent() {
       >
         <Toolbar />
         <List>
-          {/* Senders Navigation Item */}
-          { [{
-              "name": "Senders",
-              "icon": SendIcon
-            }, {
-              "name": "Reject Patterns",
-              "icon": CancelIcon
-            }].map((item, index) => (
+          {/* Navigation Items */}
+          {[
+            { name: "Senders", icon: SendIcon },
+            { name: "Messages", icon: MessageIcon }, // Added Messages
+            { name: "Reject Patterns", icon: CancelIcon },
+          ].map((item) => (
             <ListItem disablePadding key={item.name}>
               <ListItemButton onClick={() => handleNavigation(item.name)}>
-                <ListItemIcon>
-                    {item.icon ? <item.icon /> : <CancelIcon />}
-                </ListItemIcon>
+                <ListItemIcon>{item.icon ? <item.icon /> : null}</ListItemIcon>
                 {drawerOpen && <ListItemText primary={item.name} />}
               </ListItemButton>
             </ListItem>
           ))}
-
         </List>
       </Drawer>
 
@@ -115,9 +111,10 @@ function MainContent() {
         {selectedComponent === "Reject Patterns" && (
           <Box>
             <Typography variant="h5">Reject Patterns</Typography>
-            {/* Add more content for Reject Pattern here in the future */}
+            {/* Add more content for Reject Patterns here in the future */}
           </Box>
         )}
+        {selectedComponent === "Messages" && <Messages />} {/* Render Messages */}
       </Box>
     </>
   );
