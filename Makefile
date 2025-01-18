@@ -12,3 +12,6 @@ build:
 .PHONY: frontend
 frontend:
 	cd $(REACT_DIR) && NODE_ENV=development yarn start
+
+function:
+	make -C functions deploy
