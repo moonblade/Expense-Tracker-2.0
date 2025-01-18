@@ -44,10 +44,11 @@ def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -
 def ui() -> str:
     return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
 
-@app.get("/update")
-def update():
-    messages = read_sms_from_last_30_days("mnishamk@gmail.com")
-    parseMessages(messages)
+@app.post("/processmessages")
+def process_messages(email = Security(getEmail)):
+    messages = read_messages(email)
+    logging.info(f"Processing {len(messages)} messages")
+    parseMessages(email, messages)
     return {"status": "success", "message": "Messages processed successfully"}
 
 @app.get("/messages")

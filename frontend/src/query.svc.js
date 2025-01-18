@@ -69,3 +69,25 @@ export const fetchMessages = async () => {
   }
 };
 
+export const processMessages = async () => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/processmessages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to process messages");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error processing messages:", error);
+    return { success: false, error: error.message };
+  }
+};

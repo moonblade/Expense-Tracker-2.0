@@ -1,9 +1,11 @@
 import datetime
 import json
+import logging
 import re
+from typing import List
 
-from models import Sender, SenderComparisonType, SenderStatus
-from db import add_sender, get_senders
+from models import Message, MessageStatus, Sender, SenderComparisonType, SenderStatus
+from db import add_sender, get_senders, update_message_status
 
 
 reject_keywords = []
@@ -26,37 +28,44 @@ def extract_sms_details(regex: str, sms: str) -> dict:
         return match.groupdict()
     return {}
 
-def parseMessages(messages):
+def reject(email: str, messages: List[Message]):
+    if not messages:
+        return
+
     for message in messages:
-        sender = message.get("sender", "")
+        message.status = MessageStatus.rejected
+
+    logging.info(f"Rejecting {len(messages)} messages")
+    update_message_status(email, messages)
+
+def parseMessages(email: str, messages: List[Message]):
+    rejected = []
+    for message in messages:
+        sender = message.sender
         if not sender:
+            if message.status != MessageStatus.rejected:
+                logging.info(f"Rejecting message with no sender: {message}")
+                rejected.append(message)
             continue
         if not isValidSender(sender):
+            if message.status != MessageStatus.rejected:
+                rejected.append(message)
             continue
-        sms = message.get("sms", "")
+        sms = message.sms
         if not isValidSms(sms):
+            if message.status != MessageStatus.rejected:
+                rejected.append(message)
             continue
-        timestamp = message.get("timestamp", 0)
+        timestamp = message.timestamp
         for regex in regexes:
             details = extract_sms_details(regex["regex"], sms)
             if details:
                 message["matched"] = True
                 print(json.dumps(details, indent=2))
                 break
-
-        if not message.get("matched"):
-            print("The following string wasn't matched")
-            print(sms)
-            # print timestamp in iso 8601 format
-            print(f"Timestamp: {datetime.datetime.fromtimestamp(timestamp).isoformat()}")
-        # print(f"SMS: {message['sms']}")
-        # print(f"Sender: {message['sender']}")
-        # print(f"Timestamp: {message['timestamp']}")
+    reject(email, rejected)
 
 def isValidSms(sms):
-    for keyword in reject_keywords:
-        if keyword in sms:
-            return False
     return True
 
 def isValidSender(sender: str):
@@ -68,7 +77,7 @@ def isValidSender(sender: str):
             if senderItem.name in sender:
                 if senderItem.status == SenderStatus.approved:
                     return True
-                elif senderItem.status == SenderStatus.unapproved:
+                elif senderItem.status == SenderStatus.unprocessed:
                     return True
                 else:
                     return False
