@@ -1,26 +1,21 @@
-// Senders.js
 import React, { useState, useEffect } from "react";
 import {
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
   Box,
   Typography,
-  Divider,
-  CircularProgress,
+  TextField,
+  IconButton,
+  Grid,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CancelIcon from "@mui/icons-material/Cancel";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { fetchSenders, updateSenderStatus } from "./query.svc";
 
 const Senders = () => {
   const [senders, setSenders] = useState([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("");
 
   // Fetch senders data
   useEffect(() => {
@@ -44,117 +39,95 @@ const Senders = () => {
     }
   };
 
-  const handleCollapseToggle = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  // Filter senders based on search input
+  const filteredSenders = senders.filter((sender) =>
+    sender.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   // Sort senders: Grey first (unprocessed), then Green (approved), Red (rejected)
-  const sortedSenders = senders.sort((a, b) => {
+  const sortedSenders = filteredSenders.sort((a, b) => {
     const order = ["unprocessed", "approved", "rejected"];
     return order.indexOf(a.status) - order.indexOf(b.status) || a.name.localeCompare(b.name);
   });
 
   return (
-    <Box display="flex">
-      {/* Collapsible sidebar */}
-      <Paper
-        elevation={3}
-        sx={{
-          width: isCollapsed ? 50 : "33.33%",
-          transition: "width 0.3s",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: isCollapsed ? "center" : "space-between",
-            p: 2,
-          }}
-        >
-          {!isCollapsed && (
-            <Typography variant="h6" component="h3">
-              Senders
-            </Typography>
-          )}
-          <IconButton onClick={handleCollapseToggle}>
-            {isCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
-          </IconButton>
-        </Box>
-        <Divider />
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography variant="h5" component="h2" gutterBottom>
+        Manage Senders
+      </Typography>
+      
+      {/* Search bar */}
+      <TextField
+        label="Search Senders"
+        variant="outlined"
+        fullWidth
+        onChange={(e) => setFilter(e.target.value)}
+        margin="normal"
+      />
 
-        {/* Sender List */}
-        {!isCollapsed && (
-          <Box sx={{ overflowY: "auto", p: 2, flex: 1 }}>
-            {loading ? (
-              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                <CircularProgress />
-              </Box>
-            ) : (
-              <List>
-                {sortedSenders.map((sender) => (
-                  <ListItem
-                    key={sender.name}
+      {/* Add space after the search bar */}
+      <Box mb={2} />
+
+      {/* Sender List */}
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            {sortedSenders.map((sender) => (
+              <Grid item xs={12} sm={6} md={4} key={sender.name}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    backgroundColor:
+                      sender.status === "unprocessed"
+                        ? "#f0f0f0"
+                        : sender.status === "approved"
+                        ? "lightgreen"
+                        : "lightcoral",
+                    p: 2,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
                     sx={{
-                      backgroundColor:
+                      color:
                         sender.status === "unprocessed"
-                          ? "#f0f0f0"
+                          ? "textPrimary"
                           : sender.status === "approved"
-                          ? "lightgreen"
-                          : "lightcoral",
-                      mb: 1,
-                      borderRadius: 2,
-                      fontWeight: "bold",
+                          ? "green"
+                          : "red",
                     }}
                   >
-                    <ListItemText
-                      primary={sender.name}
-                      primaryTypographyProps={{
-                        color:
-                          sender.status === "unprocessed"
-                            ? "textPrimary"
-                            : sender.status === "approved"
-                            ? "green"
-                            : "red",
-                        fontWeight: "bold",
-                      }}
-                    />
-                    <Box>
-                      <IconButton
-                        onClick={() => handleStatusChange(sender.name, "approved")}
-                        color="success"
-                      >
-                        <CheckIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => handleStatusChange(sender.name, "rejected")}
-                        color="error"
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </Box>
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </Box>
-        )}
-      </Paper>
+                    {sender.name}
+                  </Typography>
 
-      {/* Main content area */}
-      <Box
-        sx={{
-          width: isCollapsed ? "100%" : "66.67%",
-          p: 2,
-        }}
-      >
-        <Typography variant="h4" component="h2" gutterBottom>
-          Main Content Area
-        </Typography>
-        {/* Add additional content here */}
+                  {/* Action Buttons */}
+                  <Box>
+                    <IconButton
+                      onClick={() => handleStatusChange(sender.name, "approved")}
+                      color="success"
+                    >
+                      <CheckIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleStatusChange(sender.name, "rejected")}
+                      color="error"
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Box>
     </Box>
   );

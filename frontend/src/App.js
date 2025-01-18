@@ -152,7 +152,6 @@ function App() {
             sx={{
               flexGrow: 1,
               p: 3,
-              marginLeft: drawerOpen ? `${drawerWidth}px` : "56px",
               transition: (theme) =>
                 theme.transitions.create("margin-left", {
                   easing: theme.transitions.easing.sharp,
