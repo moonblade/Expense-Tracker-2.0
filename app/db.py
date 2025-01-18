@@ -1,5 +1,5 @@
 from typing import List
-from models import Message, MessageStatus, Sender
+from models import Message, MessageStatus, Pattern, Sender
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -59,6 +59,17 @@ def update_senders(senders: List[Sender]):
     for sender in senders:
         sender_collection.document(sender.name).set(sender.dict())
     get_senders.cache_clear()
+
+@cache
+def get_patterns():
+    pattern_collection = db.collection("pattern")
+    query = pattern_collection.stream()
+    patterns = []
+    for doc in query:
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        patterns.append(Pattern(**doc_dict))
+    return patterns
 
 @cache
 def get_senders():

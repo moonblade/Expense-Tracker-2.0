@@ -5,7 +5,7 @@ from models import UpdateSendersRequest
 from fastapi import FastAPI, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_senders, read_messages, read_sms_from_last_30_days, update_senders
+from db import get_patterns, get_senders, read_messages, read_sms_from_last_30_days, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,7 +47,6 @@ def ui() -> str:
 @app.post("/processmessages")
 def process_messages(email = Security(getEmail)):
     messages = read_messages(email)
-    logging.info(f"Processing {len(messages)} messages")
     parseMessages(email, messages)
     return {"status": "success", "message": "Messages processed successfully"}
 
@@ -61,6 +60,12 @@ def messages(email = Security(getEmail)):
 def _update_senders(updateSendersRequest: UpdateSendersRequest, email = Security(getEmail)):
     update_senders(updateSendersRequest.senders)
     return "ok"
+
+@app.get("/patterns")
+def patterns():
+# def patterns(email = Security(getEmail)):
+    patterns = get_patterns()
+    return {"patterns": patterns}
 
 @app.get("/senders")
 def _get_senders(email = Security(getEmail)):

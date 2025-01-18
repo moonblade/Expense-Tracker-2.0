@@ -91,3 +91,22 @@ export const processMessages = async () => {
     return { success: false, error: error.message };
   }
 };
+
+export const fetchPatterns = async () => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/patterns`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch patterns");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching patterns:", error);
+    return [];
+  }
+};
