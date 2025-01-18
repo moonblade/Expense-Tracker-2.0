@@ -5,13 +5,14 @@ import {
   Typography,
   Card,
   CardContent,
-  Badge,
-  IconButton,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
   Stack,
 } from "@mui/material";
 import { fetchMessages } from "./query.svc";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
 
 function Messages() {
   const [messages, setMessages] = useState([]);
@@ -24,7 +25,6 @@ function Messages() {
       const data = await fetchMessages();
       setMessages(data.messages || []);
       setFilteredMessages(data.messages || []);
-      console.log(data.messages);
     };
 
     fetchAndSetMessages();
@@ -36,7 +36,8 @@ function Messages() {
     filterMessages(query, filterStatus);
   };
 
-  const handleFilterChange = (status) => {
+  const handleFilterChange = (event) => {
+    const status = event.target.value;
     setFilterStatus(status);
     filterMessages(searchQuery, status);
   };
@@ -67,29 +68,8 @@ function Messages() {
         Messages
       </Typography>
 
-      {/* Filter and Search Bar */}
+      {/* Search and Filter */}
       <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-        <Box>
-          <Badge
-            color="default"
-            badgeContent="All"
-            onClick={() => handleFilterChange("all")}
-            style={{ cursor: "pointer", padding: "5px" }}
-          />
-          <Badge
-            color="error"
-            badgeContent="Rejected"
-            onClick={() => handleFilterChange("rejected")}
-            style={{ cursor: "pointer", padding: "5px" }}
-          />
-          <Badge
-            color="success"
-            badgeContent="Matched"
-            onClick={() => handleFilterChange("matched")}
-            style={{ cursor: "pointer", padding: "5px" }}
-          />
-        </Box>
-
         <TextField
           variant="outlined"
           size="small"
@@ -101,6 +81,20 @@ function Messages() {
           }}
           fullWidth
         />
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Filter Status</InputLabel>
+          <Select
+            value={filterStatus}
+            onChange={handleFilterChange}
+            label="Filter Status"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="matched">Matched</MenuItem>
+            <MenuItem value="rejected">Rejected</MenuItem>
+            <MenuItem value="unprocessed">Unprocessed</MenuItem>
+          </Select>
+        </FormControl>
       </Stack>
 
       {/* Messages List */}
