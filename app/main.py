@@ -54,6 +54,7 @@ def update():
 def messages(email = Security(getEmail)):
     messages = read_messages(email)
     messages = {"messages": [message.dict() for message in messages]}
+    return messages
 
 @app.post("/senders")
 def _update_senders(updateSendersRequest: UpdateSendersRequest, email = Security(getEmail)):

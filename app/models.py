@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class SenderStatus(str, Enum):
     approved = "approved"
     rejected = "rejected"
+    ignored = "ignored"
     unprocessed = "unprocessed"
 
 class MessageStatus(str, Enum):
@@ -14,7 +15,7 @@ class MessageStatus(str, Enum):
 
 class Message(BaseModel):
     sender: str = ""
-    message: str = ""
+    sms: str = ""
     timestamp: int = 0
     status: MessageStatus = MessageStatus.unprocessed
 

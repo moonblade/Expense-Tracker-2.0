@@ -48,3 +48,24 @@ export const updateSenderStatus = async (name, status) => {
   }
 };
 
+export const fetchMessages = async () => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/messages`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch messages");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    return { messages: [] };
+  }
+};
+
