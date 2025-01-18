@@ -9,7 +9,7 @@ export async function getIdToken() {
   try {
     const currentUser = auth.currentUser;
     if (currentUser) {
-      const idToken = await currentUser.getIdToken();
+      const idToken = await currentUser.getIdToken(true);
       return idToken;
     } else {
       throw new Error("User not logged in");
@@ -36,6 +36,7 @@ export function LoginProvider({ children }) {
 
   const login = async () => {
     const provider = new GoogleAuthProvider();
+    provider.addScope("email");
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {

@@ -2,13 +2,18 @@ import os
 from auth import validate_token
 from typing import List
 from models import UpdateSendersRequest
-from fastapi import FastAPI
+from fastapi import FastAPI, Security, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_senders, moveMessages, read_sms_from_last_30_days, update_senders
+from db import get_senders, read_sms_from_last_30_days, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import logging
+
+jwt_bearer = HTTPBearer(auto_error=False)
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -27,8 +32,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# def get_api_key(credentials: HTTPAuthorizationCredentials = Security(auth_bearer)) -> str:
-    # pass
+def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -> str:
+    if credentials and credentials.scheme == "Bearer":
+        email = validate_token(credentials.credentials)
+        if email:
+            return email
+        raise HTTPException(status_code=401, detail="Invalid token")
+    raise HTTPException(status_code=401, detail="Missing token")
 
 @app.get("/")
 def ui() -> str:
@@ -41,7 +51,8 @@ def update():
     return {"status": "success", "message": "Messages processed successfully"}
 
 @app.post("/senders")
-def _update_senders(updateSendersRequest: UpdateSendersRequest):
+def _update_senders(updateSendersRequest: UpdateSendersRequest, email = Security(getEmail)):
+    print(email)
     update_senders(updateSendersRequest.senders)
     return "ok"
 

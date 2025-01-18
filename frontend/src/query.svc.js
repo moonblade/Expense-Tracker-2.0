@@ -1,4 +1,4 @@
-// query.svc.js
+import { getIdToken } from "./LoginContext";
 
 // Determine the API base URL based on the environment
 const API_BASE_URL =
@@ -20,10 +20,12 @@ export const fetchSenders = async () => {
 
 export const updateSenderStatus = async (name, status) => {
   try {
+    const idToken = await getIdToken();
     const response = await fetch(`${API_BASE_URL}/senders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`
       },
       body: JSON.stringify({
         senders: [{ name, status, comparison_type: "contains" }],
