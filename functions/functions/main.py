@@ -19,8 +19,8 @@ def get_token(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request()
 def save_sms(req: https_fn.Request) -> https_fn.Response:
-    token, status = get_token_from_req(req) 
-    if status != 200:
-        return https_fn.Response(token), status
+    # token, status = get_token_from_req(req) 
+    # if status != 200:
+    #     return https_fn.Response(token), status
     return save_sms_from_req(req)
 
