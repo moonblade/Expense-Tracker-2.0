@@ -16,6 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import CancelIcon from "@mui/icons-material/Cancel";
 import MenuIcon from "@mui/icons-material/Menu";
 import Header from "./Header";
 import { LoginProvider } from "./LoginContext";
@@ -26,8 +27,8 @@ const drawerWidth = 240;
 function App() {
   const savedDarkMode = localStorage.getItem("darkMode") === "true";
   const [darkMode, setDarkMode] = useState(savedDarkMode);
-  const [drawerOpen, setDrawerOpen] = useState(true); // Control the drawer open state
-  const [selectedComponent, setSelectedComponent] = useState("Senders"); // Control displayed content
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [selectedComponent, setSelectedComponent] = useState("Senders");
 
   const theme = createTheme({
     palette: {
@@ -123,12 +124,23 @@ function App() {
           >
             <Toolbar />
             <List>
+              {/* Senders Navigation Item */}
               <ListItem disablePadding>
                 <ListItemButton onClick={() => handleNavigation("Senders")}>
                   <ListItemIcon>
                     <SendIcon />
                   </ListItemIcon>
                   {drawerOpen && <ListItemText primary="Senders" />}
+                </ListItemButton>
+              </ListItem>
+
+              {/* Reject Pattern Navigation Item */}
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => handleNavigation("RejectPattern")}>
+                  <ListItemIcon>
+                    <CancelIcon />
+                  </ListItemIcon>
+                  {drawerOpen && <ListItemText primary="Reject Patterns" />}
                 </ListItemButton>
               </ListItem>
             </List>
@@ -150,6 +162,12 @@ function App() {
           >
             <Toolbar />
             {selectedComponent === "Senders" && <Senders />}
+            {selectedComponent === "RejectPattern" && (
+              <Box>
+                <Typography variant="h5">Reject Patterns</Typography>
+                {/* Add more content for Reject Pattern here in the future */}
+              </Box>
+            )}
           </Box>
         </Box>
       </LoginProvider>
