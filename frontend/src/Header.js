@@ -33,7 +33,7 @@ const Header = ({ toggleDarkMode }) => {
         {/* Logo and Title moved to the left */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <AccountBalanceWallet sx={{ fontSize: 30, marginRight: 1 }} />
-          <Typography variant="h6">Expense Tracker</Typography>
+          <Typography variant="h6">Expense Tracker Configuration</Typography>
         </Box>
 
         {/* Login / User Dropdown */}

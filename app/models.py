@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 from pydantic import BaseModel
 
 class SenderStatus(str, Enum):
@@ -14,3 +15,5 @@ class Sender(BaseModel):
     status: SenderStatus = SenderStatus.unprocessed
     comparison_type: SenderComparisonType = SenderComparisonType.contains
 
+class UpdateSendersRequest(BaseModel):
+    senders: List[Sender]

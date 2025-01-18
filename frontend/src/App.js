@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import Header from "./Header";
 import { LoginProvider } from "./LoginContext";
+import Senders from "./Senders";
 
 function App() {
   // Load dark mode preference from localStorage or default to true (dark mode)
@@ -28,7 +29,7 @@ function App() {
         <div className="App">
           <Header toggleDarkMode={toggleDarkMode} />
           <main>
-            {/* Your main content here */}
+            <Senders />
           </main>
         </div>
       </LoginProvider>

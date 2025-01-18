@@ -11,4 +11,4 @@ build:
 
 .PHONY: frontend
 frontend:
-	cd $(REACT_DIR) && yarn start
+	cd $(REACT_DIR) && NODE_ENV=development yarn start
