@@ -1,15 +1,9 @@
 from typing import List
 from models import Sender
-from firebase_admin import initialize_app, firestore, credentials
+from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
 from functools import cache
-
-try:
-    cred = credentials.Certificate("./secrets/serviceAccountKey.json")
-    initialize_app(cred)
-except:
-    print("App already initialized")
 
 db = firestore.client()
 
