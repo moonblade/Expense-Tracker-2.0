@@ -16,22 +16,42 @@ import { fetchMessages, processMessages } from "./query.svc";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync"; // Use this as a "Process Messages" icon.
 
+const FILTER_STATUS_KEY = "messages_filterStatus";
+
 function Messages() {
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // Retrieve filter status from local storage
+    const savedFilterStatus = localStorage.getItem(FILTER_STATUS_KEY);
+    if (savedFilterStatus) {
+      setFilterStatus(savedFilterStatus);
+    }
+
     const fetchAndSetMessages = async () => {
       const data = await fetchMessages();
       setMessages(data.messages || []);
-      setFilteredMessages(data.messages || []);
+      let updatedMessages = data.messages;
+      if (filterStatus !== "all") {
+        updatedMessages = updatedMessages.filter(
+          (msg) => msg.status.toLowerCase() === filterStatus
+        );
+      }
+      setFilteredMessages(updatedMessages || []);
     };
 
     fetchAndSetMessages();
   }, []);
+
+  useEffect(() => {
+    // Save the filter status to local storage whenever it changes
+    localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
+    filterMessages(searchQuery, filterStatus);
+  }, [filterStatus]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -40,9 +60,7 @@ function Messages() {
   };
 
   const handleFilterChange = (event) => {
-    const status = event.target.value;
-    setFilterStatus(status);
-    filterMessages(searchQuery, status);
+    setFilterStatus(event.target.value);
   };
 
   const filterMessages = (query, status) => {
@@ -69,10 +87,17 @@ function Messages() {
     setIsProcessing(true);
     try {
       const result = await processMessages();
-      if (result.success) {
+      if (result.status === "success") {
         const refreshedData = await fetchMessages();
         setMessages(refreshedData.messages || []);
-        setFilteredMessages(refreshedData.messages || []);
+
+        let updatedMessages = refreshedData.messages;
+        if (filterStatus !== "all") {
+          updatedMessages = updatedMessages.filter(
+            (msg) => msg.status.toLowerCase() === filterStatus
+          );
+        }
+        setFilteredMessages(updatedMessages || []);
       } else {
         console.error("Failed to process messages:", result.error);
       }
