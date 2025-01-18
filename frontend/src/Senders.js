@@ -88,30 +88,29 @@ const Senders = () => {
                       : "lightcoral",
                   marginBottom: 1,
                   borderRadius: 2,
-                  fontWeight: "bold",  // Make text bold
-                  color: 
-                    sender.status === "unprocessed" ? "black" :
-                    sender.status === "approved" ? "darkgreen" : "darkred",  // High contrast colors
+                  fontWeight: "bold", // Make text bold
+                  color:
+                    sender.status === "unprocessed"
+                      ? "black"
+                      : sender.status === "approved"
+                      ? "darkgreen"
+                      : "darkred", // High contrast colors
                 }}
               >
                 <ListItemText primary={sender.name} />
                 <Box>
-                  {sender.status === "unprocessed" && (
-                    <>
-                      <IconButton
-                        onClick={() => handleStatusChange(sender.name, "approved")}
-                        sx={{ color: "green" }}
-                      >
-                        <CheckIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => handleStatusChange(sender.name, "rejected")}
-                        sx={{ color: "red" }}
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </>
-                  )}
+                  <IconButton
+                    onClick={() => handleStatusChange(sender.name, "approved")}
+                    sx={{ color: "green" }}
+                  >
+                    <CheckIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => handleStatusChange(sender.name, "rejected")}
+                    sx={{ color: "red" }}
+                  >
+                    <CancelIcon />
+                  </IconButton>
                 </Box>
               </ListItem>
             ))}
