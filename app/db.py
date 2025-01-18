@@ -47,6 +47,7 @@ def update_senders(senders: List[Sender]):
 
     for sender in senders:
         sender_collection.document(sender.name).set(sender.dict())
+    get_senders.cache_clear()
 
 @cache
 def get_senders():

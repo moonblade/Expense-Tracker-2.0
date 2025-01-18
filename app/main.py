@@ -39,7 +39,7 @@ def update():
 @app.post("/senders")
 def _update_senders(updateSendersRequest: UpdateSendersRequest):
     update_senders(updateSendersRequest.senders)
-    return updateSendersRequest
+    return "ok"
 
 @app.get("/senders")
 def _get_senders():
