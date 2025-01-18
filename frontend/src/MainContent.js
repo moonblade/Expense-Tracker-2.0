@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   Toolbar,
@@ -22,12 +22,22 @@ const drawerWidth = 240;
 
 function MainContent() {
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const [selectedComponent, setSelectedComponent] = useState("Senders");
+  const [selectedComponent, setSelectedComponent] = useState(
+    () => localStorage.getItem("selectedComponent") || "Senders"
+  );
   const { user, login } = useContext(LoginContext);
 
   const handleNavigation = (component) => {
     setSelectedComponent(component);
+    localStorage.setItem("selectedComponent", component); // Save to localStorage
   };
+
+  useEffect(() => {
+    const savedComponent = localStorage.getItem("selectedComponent");
+    if (savedComponent) {
+      setSelectedComponent(savedComponent);
+    }
+  }, []);
 
   if (!user) {
     return (
@@ -80,7 +90,7 @@ function MainContent() {
           {/* Navigation Items */}
           {[
             { name: "Senders", icon: SendIcon },
-            { name: "Messages", icon: MessageIcon }, // Added Messages
+            { name: "Messages", icon: MessageIcon },
             { name: "Reject Patterns", icon: CancelIcon },
           ].map((item) => (
             <ListItem disablePadding key={item.name}>
@@ -114,7 +124,7 @@ function MainContent() {
             {/* Add more content for Reject Patterns here in the future */}
           </Box>
         )}
-        {selectedComponent === "Messages" && <Messages />} {/* Render Messages */}
+        {selectedComponent === "Messages" && <Messages />}
       </Box>
     </>
   );
