@@ -7,6 +7,17 @@ class SenderStatus(str, Enum):
     rejected = "rejected"
     unprocessed = "unprocessed"
 
+class MessageStatus(str, Enum):
+    matched = "matched"
+    unprocessed = "unprocessed"
+    rejected = "rejected"
+
+class Message(BaseModel):
+    sender: str = ""
+    message: str = ""
+    timestamp: int = 0
+    status: MessageStatus = MessageStatus.unprocessed
+
 class SenderComparisonType(str, Enum):
     contains = "contains"
 

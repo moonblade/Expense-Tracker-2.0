@@ -1,11 +1,26 @@
 from typing import List
-from models import Sender
+from models import Message, Sender
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
 from functools import cache
 
 db = firestore.client()
+
+def read_messages(email, days_ago_start=30):
+    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago_start)
+    start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_timestamp = int(start_date.timestamp())
+
+    sms_collection = db.collection("sms").document(email).collection("messages")
+    filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
+    query = sms_collection.where(filter=filter_condition).order_by("timestamp").stream()
+
+    messages = []
+    for doc in query:
+        messages.append(Message(**doc.to_dict()))
+
+    return messages
 
 def read_sms_from_last_30_days(email):
     if not email:

@@ -6,7 +6,12 @@ const API_BASE_URL =
 
 export const fetchSenders = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/senders`);
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/senders`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      }
+    });
     if (!response.ok) {
       throw new Error("Failed to fetch senders");
     }

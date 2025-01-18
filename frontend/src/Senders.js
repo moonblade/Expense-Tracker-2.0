@@ -53,7 +53,7 @@ const Senders = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Typography variant="h5" component="h2" gutterBottom>
-        Manage Senders
+        Senders
       </Typography>
       
       {/* Search bar */}
