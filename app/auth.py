@@ -24,9 +24,7 @@ def get_email_from_uid(uid):
     """
     try:
         user = auth.get_user(uid)
-        auth.update_user(uid,email="mnishamk1995@gmail.com")
         logging.info(user)
-        logging.info(user.dict())
         logging.info(user.email)
         logging.info(user.uid)
         return user.email
