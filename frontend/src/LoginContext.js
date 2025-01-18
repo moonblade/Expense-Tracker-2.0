@@ -9,7 +9,7 @@ export async function getIdToken() {
   try {
     const currentUser = auth.currentUser;
     if (currentUser) {
-      const idToken = await currentUser.getIdToken(true);
+      const idToken = await currentUser.getIdToken();
       return idToken;
     } else {
       throw new Error("User not logged in");
@@ -55,3 +55,4 @@ export function LoginProvider({ children }) {
   );
 }
 
+export default LoginContext;
