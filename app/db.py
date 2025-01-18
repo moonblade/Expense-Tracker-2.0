@@ -1,5 +1,5 @@
 from typing import List
-from models import Message, Sender
+from models import Message, MessageStatus, Sender
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -18,7 +18,9 @@ def read_messages(email, days_ago_start=30):
 
     messages = []
     for doc in query:
-        messages.append(Message(**doc.to_dict()))
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        messages.append(Message(**doc_dict))
 
     return messages
 
@@ -64,6 +66,23 @@ def get_senders():
     query = sender_collection.stream()
     senders = []
     for doc in query:
-        doc = doc.to_dict()
-        senders.append(Sender(**doc))
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        senders.append(Sender(**doc_dict))
     return senders
+
+def update_message_status(email: str, messages: List[Message]):
+    if not messages:
+        return
+
+    batch = db.batch()
+
+    for message in messages:
+        sms_doc_ref = db.collection("sms").document(email).collection("messages").document(message.id)
+        batch.update(sms_doc_ref, {"status": message.status.value})
+
+    try:
+        batch.commit()
+    except Exception as e:
+        print(f"Error updating message statuses: {e}")
+

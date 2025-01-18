@@ -14,6 +14,7 @@ class MessageStatus(str, Enum):
     rejected = "rejected"
 
 class Message(BaseModel):
+    id: str = ""
     sender: str = ""
     sms: str = ""
     timestamp: int = 0
@@ -23,6 +24,7 @@ class SenderComparisonType(str, Enum):
     contains = "contains"
 
 class Sender(BaseModel):
+    id: str = ""
     name: str = ""
     status: SenderStatus = SenderStatus.unprocessed
     comparison_type: SenderComparisonType = SenderComparisonType.contains

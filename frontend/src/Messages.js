@@ -10,15 +10,18 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  IconButton,
 } from "@mui/material";
-import { fetchMessages } from "./query.svc";
+import { fetchMessages, processMessages } from "./query.svc";
 import SearchIcon from "@mui/icons-material/Search";
+import SyncIcon from "@mui/icons-material/Sync"; // Use this as a "Process Messages" icon.
 
 function Messages() {
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchAndSetMessages = async () => {
@@ -62,6 +65,24 @@ function Messages() {
     setFilteredMessages(updatedMessages);
   };
 
+  const handleProcessMessages = async () => {
+    setIsProcessing(true);
+    try {
+      const result = await processMessages();
+      if (result.success) {
+        const refreshedData = await fetchMessages();
+        setMessages(refreshedData.messages || []);
+        setFilteredMessages(refreshedData.messages || []);
+      } else {
+        console.error("Failed to process messages:", result.error);
+      }
+    } catch (error) {
+      console.error("Error processing messages:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <Box p={3}>
       <Typography variant="h5" gutterBottom>
@@ -95,6 +116,16 @@ function Messages() {
             <MenuItem value="unprocessed">Unprocessed</MenuItem>
           </Select>
         </FormControl>
+
+        {/* Process Messages Button */}
+        <IconButton
+          onClick={handleProcessMessages}
+          color="primary"
+          disabled={isProcessing}
+          title="Process Messages"
+        >
+          <SyncIcon />
+        </IconButton>
       </Stack>
 
       {/* Messages List */}
