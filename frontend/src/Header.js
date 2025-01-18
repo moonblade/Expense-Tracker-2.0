@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useLogin } from "./LoginContext";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem } from "@mui/material";
-import { Brightness4, Brightness7, AccountBalanceWallet, Settings } from "@mui/icons-material"; // Add settings icon
+import { Brightness4, Brightness7, AccountBalanceWallet, Settings } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 
 const Header = ({ toggleDarkMode }) => {
@@ -28,7 +28,7 @@ const Header = ({ toggleDarkMode }) => {
   };
 
   return (
-    <AppBar position="static" color="primary">
+    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         {/* Logo and Title moved to the left */}
         <Box sx={{ display: "flex", alignItems: "center" }}>

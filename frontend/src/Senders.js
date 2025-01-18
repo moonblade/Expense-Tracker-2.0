@@ -1,11 +1,21 @@
 // Senders.js
 import React, { useState, useEffect } from "react";
-import { List, ListItem, ListItemText, IconButton, Box } from "@mui/material";
-import CheckIcon from '@mui/icons-material/Check';
-import CancelIcon from '@mui/icons-material/Cancel';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { fetchSenders, updateSenderStatus } from './query.svc';
+import {
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Box,
+  Typography,
+  Divider,
+  CircularProgress,
+  Paper,
+} from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+import CancelIcon from "@mui/icons-material/Cancel";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { fetchSenders, updateSenderStatus } from "./query.svc";
 
 const Senders = () => {
   const [senders, setSenders] = useState([]);
@@ -39,83 +49,112 @@ const Senders = () => {
   };
 
   // Sort senders: Grey first (unprocessed), then Green (approved), Red (rejected)
-  const sortedSenders = senders
-    .sort((a, b) => {
-      const order = ["unprocessed", "approved", "rejected"];
-      return order.indexOf(a.status) - order.indexOf(b.status) || a.name.localeCompare(b.name);
-    });
+  const sortedSenders = senders.sort((a, b) => {
+    const order = ["unprocessed", "approved", "rejected"];
+    return order.indexOf(a.status) - order.indexOf(b.status) || a.name.localeCompare(b.name);
+  });
 
   return (
     <Box display="flex">
       {/* Collapsible sidebar */}
-      <Box
+      <Paper
+        elevation={3}
         sx={{
           width: isCollapsed ? 50 : "33.33%",
           transition: "width 0.3s",
-          borderRight: "1px solid #ccc",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <IconButton onClick={handleCollapseToggle} sx={{ position: "absolute", top: 20, right: isCollapsed ? 0 : 50 }}>
-          {isCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
-        </IconButton>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: isCollapsed ? "center" : "space-between",
+            p: 2,
+          }}
+        >
+          {!isCollapsed && (
+            <Typography variant="h6" component="h3">
+              Senders
+            </Typography>
+          )}
+          <IconButton onClick={handleCollapseToggle}>
+            {isCollapsed ? <ArrowForwardIcon /> : <ArrowBackIcon />}
+          </IconButton>
+        </Box>
+        <Divider />
+
+        {/* Sender List */}
         {!isCollapsed && (
-          <Box sx={{ padding: 2 }}>
-            <h3>Senders</h3>
+          <Box sx={{ overflowY: "auto", p: 2, flex: 1 }}>
+            {loading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                <CircularProgress />
+              </Box>
+            ) : (
+              <List>
+                {sortedSenders.map((sender) => (
+                  <ListItem
+                    key={sender.name}
+                    sx={{
+                      backgroundColor:
+                        sender.status === "unprocessed"
+                          ? "#f0f0f0"
+                          : sender.status === "approved"
+                          ? "lightgreen"
+                          : "lightcoral",
+                      mb: 1,
+                      borderRadius: 2,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    <ListItemText
+                      primary={sender.name}
+                      primaryTypographyProps={{
+                        color:
+                          sender.status === "unprocessed"
+                            ? "textPrimary"
+                            : sender.status === "approved"
+                            ? "green"
+                            : "red",
+                        fontWeight: "bold",
+                      }}
+                    />
+                    <Box>
+                      <IconButton
+                        onClick={() => handleStatusChange(sender.name, "approved")}
+                        color="success"
+                      >
+                        <CheckIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleStatusChange(sender.name, "rejected")}
+                        color="error"
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </Box>
         )}
-      </Box>
+      </Paper>
 
       {/* Main content area */}
       <Box
         sx={{
           width: isCollapsed ? "100%" : "66.67%",
-          padding: 2,
+          p: 2,
         }}
       >
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <List>
-            {sortedSenders.map((sender) => (
-              <ListItem
-                key={sender.name}
-                sx={{
-                  backgroundColor:
-                    sender.status === "unprocessed"
-                      ? "#f0f0f0"
-                      : sender.status === "approved"
-                      ? "lightgreen"
-                      : "lightcoral",
-                  marginBottom: 1,
-                  borderRadius: 2,
-                  fontWeight: "bold", // Make text bold
-                  color:
-                    sender.status === "unprocessed"
-                      ? "black"
-                      : sender.status === "approved"
-                      ? "darkgreen"
-                      : "darkred", // High contrast colors
-                }}
-              >
-                <ListItemText primary={sender.name} />
-                <Box>
-                  <IconButton
-                    onClick={() => handleStatusChange(sender.name, "approved")}
-                    sx={{ color: "green" }}
-                  >
-                    <CheckIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleStatusChange(sender.name, "rejected")}
-                    sx={{ color: "red" }}
-                  >
-                    <CancelIcon />
-                  </IconButton>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        )}
+        <Typography variant="h4" component="h2" gutterBottom>
+          Main Content Area
+        </Typography>
+        {/* Add additional content here */}
       </Box>
     </Box>
   );
