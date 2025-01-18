@@ -14,9 +14,11 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 import CancelIcon from "@mui/icons-material/Cancel";
 import MessageIcon from "@mui/icons-material/Message";
+import BuildIcon from "@mui/icons-material/Build"; // New icon for Pattern
 import Senders from "./Senders";
 import Messages from "./Messages"; // Import the Messages component
 import LoginContext from "./LoginContext";
+import Pattern from "./Pattern";
 
 const drawerWidth = 240;
 
@@ -91,7 +93,7 @@ function MainContent() {
           {[
             { name: "Senders", icon: SendIcon },
             { name: "Messages", icon: MessageIcon },
-            { name: "Reject Patterns", icon: CancelIcon },
+            { name: "Patterns", icon: BuildIcon }, // Updated to "Pattern"
           ].map((item) => (
             <ListItem disablePadding key={item.name}>
               <ListItemButton onClick={() => handleNavigation(item.name)}>
@@ -118,12 +120,7 @@ function MainContent() {
       >
         <Toolbar />
         {selectedComponent === "Senders" && <Senders />}
-        {selectedComponent === "Reject Patterns" && (
-          <Box>
-            <Typography variant="h5">Reject Patterns</Typography>
-            {/* Add more content for Reject Patterns here in the future */}
-          </Box>
-        )}
+        {selectedComponent === "Patterns" && <Pattern />}
         {selectedComponent === "Messages" && <Messages />}
       </Box>
     </>
