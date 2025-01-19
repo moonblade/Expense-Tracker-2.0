@@ -62,7 +62,7 @@ def update_senders(senders: List[Sender]):
 
 def upsert_pattern(pattern: Pattern):
     pattern_collection = db.collection("pattern")
-    if pattern_collection.document(pattern.id).get().exists:
+    if pattern.id and pattern_collection.document(pattern.id).get().exists:
         pattern_collection.document(pattern.id).set(pattern.dict())
     else:
         pattern_collection.add(pattern.dict())

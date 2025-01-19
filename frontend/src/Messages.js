@@ -18,7 +18,7 @@ import SyncIcon from "@mui/icons-material/Sync"; // Use this as a "Process Messa
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
-function Messages() {
+function Messages({ onMessageClick }) {
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,7 +167,9 @@ function Messages() {
                   ? "green"
                   : "grey"
               }`,
+              cursor: onMessageClick ? "pointer" : "default",
             }}
+            onClick={() => onMessageClick && onMessageClick(msg)}
           >
             <CardContent>
               <Typography
@@ -178,7 +180,7 @@ function Messages() {
                 {msg.sender}
               </Typography>
               <Typography variant="body1">{msg.sms}</Typography>
-             <Typography
+              <Typography
                 variant="caption"
                 color="textSecondary"
                 display="block"
@@ -192,7 +194,7 @@ function Messages() {
                   month: "2-digit",
                   year: "numeric",
                 })}
-              </Typography> 
+              </Typography>
             </CardContent>
           </Card>
         ))}
