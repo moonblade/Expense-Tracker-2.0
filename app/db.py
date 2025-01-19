@@ -60,6 +60,10 @@ def update_senders(senders: List[Sender]):
         sender_collection.document(sender.name).set(sender.dict())
     get_senders.cache_clear()
 
+def update_pattern(pattern: Pattern):
+    if (not pattern.id):
+        return False
+
 @cache
 def get_patterns():
     pattern_collection = db.collection("pattern")
