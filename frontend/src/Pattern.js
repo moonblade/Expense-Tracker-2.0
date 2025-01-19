@@ -39,7 +39,6 @@ function Pattern() {
   };
 
   useEffect(() => {
-
     fetchAndSetPatterns();
   }, []);
 
@@ -61,6 +60,17 @@ function Pattern() {
 
   const handleCardClick = (pattern) => {
     setSelectedPattern({ ...pattern }); // Clone the pattern to avoid direct mutation
+    setIsDialogOpen(true);
+  };
+
+  const handleAddPattern = (sender, message) => {
+    setSelectedPattern({
+      sender,
+      pattern: message,
+      name: "",
+      action: "approve",
+      metadata: {},
+    });
     setIsDialogOpen(true);
   };
 
@@ -98,17 +108,12 @@ function Pattern() {
   const handleSave = async () => {
     try {
       await updatePattern(selectedPattern);
-      console.log("Pattern updated successfully");
+      console.log("Pattern saved successfully");
       handleDialogClose();
       fetchAndSetPatterns();
     } catch (error) {
-      console.error("Error updating pattern:", error);
+      console.error("Error saving pattern:", error);
     }
-  };
-
-  const handleDelete = () => {
-    console.log("Deleting pattern:", selectedPattern);
-    handleDialogClose();
   };
 
   return (
@@ -171,12 +176,13 @@ function Pattern() {
           </Card>
         ))}
       </Box>
-      <Messages />
 
-      {/* Edit Dialog */}
+      <Messages onMessageClick={(msg) => handleAddPattern(msg.sender.split("-")[1], msg.sms)} />
+
+      {/* Edit/Add Dialog */}
       {selectedPattern && (
         <Dialog open={isDialogOpen} onClose={handleDialogClose} fullWidth>
-          <DialogTitle>Edit Pattern</DialogTitle>
+          <DialogTitle>{selectedPattern.name ? "Edit Pattern" : "Add Pattern"}</DialogTitle>
           <DialogContent>
             <TextField
               label="Name"
@@ -216,7 +222,13 @@ function Pattern() {
             </Typography>
             {Object.entries(selectedPattern.metadata || {}).map(
               ([key, value], index) => (
-                <Stack direction="row" spacing={2} mb={1} alignItems="center" key={index}>
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  mb={1}
+                  alignItems="center"
+                  key={index}
+                >
                   <TextField
                     label="Key"
                     value={key}
@@ -247,9 +259,6 @@ function Pattern() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
-            <Button onClick={handleDelete} color="error">
-              Delete
-            </Button>
             <Button onClick={handleSave} color="primary">
               Save
             </Button>
@@ -261,4 +270,3 @@ function Pattern() {
 }
 
 export default Pattern;
-
