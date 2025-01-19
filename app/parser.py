@@ -4,8 +4,8 @@ import logging
 import re
 from typing import List
 
-from models import Message, MessageStatus, Sender, SenderComparisonType, SenderStatus
-from db import add_sender, get_senders, update_message_status
+from models import Message, MessageStatus, PatternAction, Sender, SenderComparisonType, SenderStatus
+from db import add_sender, get_patterns, get_senders, update_message_status
 
 
 reject_keywords = []
@@ -38,8 +38,19 @@ def reject(email: str, messages: List[Message]):
     logging.info(f"Rejecting {len(messages)} messages")
     update_message_status(email, messages)
 
+def set_matched(email: str, messages: List[Message]):
+    if not messages:
+        return
+
+    for message in messages:
+        message.status = MessageStatus.matched
+
+    logging.info(f"Matching {len(messages)} messages")
+    update_message_status(email, messages)
+
 def parseMessages(email: str, messages: List[Message]):
     rejected = []
+    matched = []
     for message in messages:
         sender = message.sender
         if not sender:
@@ -52,21 +63,30 @@ def parseMessages(email: str, messages: List[Message]):
                 rejected.append(message)
             continue
         sms = message.sms
-        if not isValidSms(sms):
-            if message.status != MessageStatus.rejected:
-                rejected.append(message)
-            continue
         timestamp = message.timestamp
-        for regex in regexes:
-            details = extract_sms_details(regex["regex"], sms)
-            if details:
-                message["matched"] = True
-                print(json.dumps(details, indent=2))
-                break
+        success, status = parseMessage(message)
+        if success:
+            message.status = status
+            if status == MessageStatus.matched:
+                matched.append(message)
+            else:
+                rejected.append(message)
+        else:
+            message.status = MessageStatus.unprocessed
     reject(email, rejected)
+    set_matched(email, matched)
 
-def isValidSms(sms):
-    return True
+def parseMessage(message: Message):
+    patterns = get_patterns()
+    for pattern in patterns:
+        if pattern.sender.lower() in message.sender.lower():
+            details = extract_sms_details(pattern.pattern, message.sms)
+            if details:
+                if pattern.action == PatternAction.approve:
+                    return True, MessageStatus.matched
+                else:
+                    return True, MessageStatus.rejected
+    return False, MessageStatus.unprocessed
 
 def isValidSender(sender: str):
     senders = get_senders()
@@ -74,7 +94,7 @@ def isValidSender(sender: str):
         return False
     for senderItem in senders:
         if senderItem.comparison_type == SenderComparisonType.contains:
-            if senderItem.name in sender:
+            if senderItem.name.lower() in sender.lower():
                 if senderItem.status == SenderStatus.approved:
                     return True
                 elif senderItem.status == SenderStatus.unprocessed:

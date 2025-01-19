@@ -110,3 +110,25 @@ export const fetchPatterns = async () => {
     return [];
   }
 };
+
+export const updatePattern = async (pattern) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/patterns`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(pattern),
+    });
+    if (!response.ok) {
+      throw new Error("Failed to update pattern");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating pattern:", error);
+    throw error; // Re-throwing the error so that it can be handled where the function is called
+  }
+};
