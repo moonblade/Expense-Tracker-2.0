@@ -18,7 +18,8 @@ import {
   InputLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { fetchPatterns } from "./query.svc";
+import { fetchPatterns, updatePattern } from "./query.svc";
+import Messages from "./Messages";
 
 function Pattern() {
   const [patterns, setPatterns] = useState([]);
@@ -27,16 +28,17 @@ function Pattern() {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const fetchAndSetPatterns = async () => {
+    try {
+      const data = await fetchPatterns();
+      setPatterns(data.patterns || []);
+      setFilteredPatterns(data.patterns || []);
+    } catch (error) {
+      console.error("Error fetching patterns:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchAndSetPatterns = async () => {
-      try {
-        const data = await fetchPatterns();
-        setPatterns(data.patterns || []);
-        setFilteredPatterns(data.patterns || []);
-      } catch (error) {
-        console.error("Error fetching patterns:", error);
-      }
-    };
 
     fetchAndSetPatterns();
   }, []);
@@ -93,9 +95,15 @@ function Pattern() {
     });
   };
 
-  const handleSave = () => {
-    console.log("Saving pattern:", selectedPattern);
-    handleDialogClose();
+  const handleSave = async () => {
+    try {
+      await updatePattern(selectedPattern);
+      console.log("Pattern updated successfully");
+      handleDialogClose();
+      fetchAndSetPatterns();
+    } catch (error) {
+      console.error("Error updating pattern:", error);
+    }
   };
 
   const handleDelete = () => {
@@ -163,6 +171,7 @@ function Pattern() {
           </Card>
         ))}
       </Box>
+      <Messages />
 
       {/* Edit Dialog */}
       {selectedPattern && (
@@ -207,13 +216,15 @@ function Pattern() {
             </Typography>
             {Object.entries(selectedPattern.metadata || {}).map(
               ([key, value], index) => (
-                <Stack direction="row" spacing={2} alignItems="center" key={index}>
+                <Stack direction="row" spacing={2} mb={1} alignItems="center" key={index}>
                   <TextField
                     label="Key"
                     value={key}
-                    onChange={(e) =>
-                      handleMetadataChange(e.target.value, value)
-                    }
+                    onChange={(e) => {
+                      const newKey = e.target.value;
+                      handleRemoveMetadata(key);
+                      handleMetadataChange(newKey, value);
+                    }}
                     fullWidth
                     margin="dense"
                   />
@@ -236,11 +247,11 @@ function Pattern() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
-            <Button onClick={handleSave} color="primary">
-              Save
-            </Button>
             <Button onClick={handleDelete} color="error">
               Delete
+            </Button>
+            <Button onClick={handleSave} color="primary">
+              Save
             </Button>
           </DialogActions>
         </Dialog>

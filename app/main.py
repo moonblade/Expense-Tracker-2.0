@@ -5,7 +5,7 @@ from models import Pattern, UpdateSendersRequest
 from fastapi import FastAPI, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_patterns, get_senders, read_messages, read_sms_from_last_30_days, update_pattern, update_senders
+from db import get_patterns, get_senders, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -67,8 +67,8 @@ def patterns(email = Security(getEmail)):
     return {"patterns": patterns}
 
 @app.post("/patterns")
-def _update_pattern(pattern: Pattern):
-    success = update_pattern(pattern)
+def _upsert_pattern(pattern: Pattern):
+    success = upsert_pattern(pattern)
     if not success:
         raise HTTPException(status_code=400, detail="Invalid pattern")
     return "ok"
