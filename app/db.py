@@ -72,7 +72,7 @@ def upsert_pattern(pattern: Pattern):
 @cache
 def get_patterns():
     pattern_collection = db.collection("pattern")
-    query = pattern_collection.stream()
+    query = pattern_collection.order_by("action").stream()
     patterns = []
     for doc in query:
         doc_dict = doc.to_dict()
