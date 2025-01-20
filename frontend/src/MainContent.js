@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   Toolbar,
-  Typography,
   Drawer,
   List,
   ListItem,
@@ -12,7 +11,6 @@ import {
   Button,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import CancelIcon from "@mui/icons-material/Cancel";
 import MessageIcon from "@mui/icons-material/Message";
 import BuildIcon from "@mui/icons-material/Build"; // New icon for Pattern
 import Senders from "./Senders";
@@ -23,7 +21,7 @@ import Pattern from "./Pattern";
 const drawerWidth = 240;
 
 function MainContent() {
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerOpen, ] = useState(true);
   const [selectedComponent, setSelectedComponent] = useState(
     () => localStorage.getItem("selectedComponent") || "Senders"
   );
