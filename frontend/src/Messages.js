@@ -45,7 +45,25 @@ function Messages({ onMessageClick }) {
     };
 
     fetchAndSetMessages();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    // Save the filter status to local storage whenever it changes
+    localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
+    filterMessages(searchQuery, filterStatus);
+    // eslint-disable-next-line
   }, [filterStatus]);
+
+  const handleSearch = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+    filterMessages(query, filterStatus);
+  };
+
+  const handleFilterChange = (event) => {
+    setFilterStatus(event.target.value);
+  };
 
   const filterMessages = (query, status) => {
     let updatedMessages = messages;
@@ -65,23 +83,6 @@ function Messages({ onMessageClick }) {
     }
 
     setFilteredMessages(updatedMessages);
-  };
-
-  useEffect(() => {
-    // Save the filter status to local storage whenever it changes
-    localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
-    filterMessages(searchQuery, filterStatus);
-    // eslint-disable-next-line
-  }, [filterStatus, searchQuery]);
-
-  const handleSearch = (event) => {
-    const query = event.target.value.toLowerCase();
-    setSearchQuery(query);
-    filterMessages(query, filterStatus);
-  };
-
-  const handleFilterChange = (event) => {
-    setFilterStatus(event.target.value);
   };
 
   const handleProcessMessages = async () => {
