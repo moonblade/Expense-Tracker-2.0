@@ -45,13 +45,13 @@ function Messages({ onMessageClick }) {
     };
 
     fetchAndSetMessages();
-  }, []);
+  }, [filterStatus]);
 
   useEffect(() => {
     // Save the filter status to local storage whenever it changes
     localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
     filterMessages(searchQuery, filterStatus);
-  }, [filterStatus]);
+  }, [filterStatus, filterMessages, searchQuery]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
