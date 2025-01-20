@@ -11,7 +11,7 @@ from db import add_sender, get_patterns, get_senders, update_message_status
 reject_keywords = []
 regexes = []
 
-def extract_sms_details(regex: str, sms: str) -> dict:
+def extract_sms_details(regex: str, sms: str):
     """
     Extracts details from an SMS string based on the given regex.
     
@@ -25,8 +25,8 @@ def extract_sms_details(regex: str, sms: str) -> dict:
     """
     match = re.search(regex, sms)
     if match:
-        return match.groupdict()
-    return {}
+        return True, match.groupdict()
+    return False, {}
 
 def reject(email: str, messages: List[Message]):
     if not messages:
@@ -80,8 +80,8 @@ def parseMessage(message: Message):
     patterns = get_patterns()
     for pattern in patterns:
         if pattern.sender.lower() in message.sender.lower():
-            details = extract_sms_details(pattern.pattern, message.sms)
-            if details:
+            success, details = extract_sms_details(pattern.pattern, message.sms)
+            if success:
                 if pattern.action == PatternAction.approve:
                     return True, MessageStatus.matched
                 else:
