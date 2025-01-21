@@ -116,6 +116,20 @@ function Pattern() {
     }
   };
 
+  const handleMessageClick = (msg) => {
+    if (msg.matchedPattern) {
+      // Find the matching pattern by id
+      const matchedPattern = patterns.find(
+        (pattern) => pattern.id === msg.matchedPattern
+      );
+      if (matchedPattern) {
+        handleCardClick(matchedPattern);
+        return;
+      }
+    }
+    handleAddPattern(msg.sender.split("-")[1], msg.sms);
+  };
+
   return (
     <Box p={3}>
       <Typography variant="h5" gutterBottom>
@@ -177,7 +191,7 @@ function Pattern() {
         ))}
       </Box>
 
-      <Messages onMessageClick={(msg) => handleAddPattern(msg.sender.split("-")[1], msg.sms)} />
+      <Messages onMessageClick={handleMessageClick} />
 
       {/* Edit/Add Dialog */}
       {selectedPattern && (

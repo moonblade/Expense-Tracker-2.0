@@ -18,6 +18,7 @@ class Message(BaseModel):
     sms: str = ""
     timestamp: int = 0
     status: MessageStatus = MessageStatus.unprocessed
+    matchedPattern: str = ""
 
 class SenderComparisonType(str, Enum):
     contains = "contains"

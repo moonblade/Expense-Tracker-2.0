@@ -99,7 +99,7 @@ def update_message_status(email: str, messages: List[Message]):
 
     for message in messages:
         sms_doc_ref = db.collection("sms").document(email).collection("messages").document(message.id)
-        batch.update(sms_doc_ref, {"status": message.status.value})
+        batch.update(sms_doc_ref, {"status": message.status.value, "matchedPattern": message.matchedPattern})
 
     try:
         batch.commit()
