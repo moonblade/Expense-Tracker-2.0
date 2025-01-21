@@ -64,9 +64,11 @@ def parseMessages(email: str, messages: List[Message]):
             continue
         sms = message.sms
         timestamp = message.timestamp
-        success, status = parseMessage(message)
+        success, status, pattern = parseMessage(message)
         if success:
             message.status = status
+            if pattern:
+                message.matchedPattern = pattern.id
             if status == MessageStatus.matched:
                 matched.append(message)
             else:
@@ -83,10 +85,10 @@ def parseMessage(message: Message):
             success, details = extract_sms_details(pattern.pattern, message.sms)
             if success:
                 if pattern.action == PatternAction.approve:
-                    return True, MessageStatus.matched
+                    return True, MessageStatus.matched, pattern
                 else:
-                    return True, MessageStatus.rejected
-    return False, MessageStatus.unprocessed
+                    return True, MessageStatus.rejected, pattern
+    return False, MessageStatus.unprocessed, None
 
 def isValidSender(sender: str):
     senders = get_senders()
