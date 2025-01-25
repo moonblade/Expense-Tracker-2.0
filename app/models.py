@@ -43,3 +43,24 @@ class Pattern(BaseModel):
     sender: str = ""
     metadata: Dict[str, str] = {}
     action: PatternAction = PatternAction.approve
+
+class Transaction(BaseModel):
+    id: str = ""
+    amount: float = 0
+    account: str = ""
+    timestamp: int = 0
+    merchant: str = ""
+    date: str = ""
+    balance: float = 0
+    type: str = ""
+    transactiontype: str = "debit"
+
+    @staticmethod
+    def from_json(transaction: Dict):
+        if "amount" in transaction:
+            transaction["amount"] = transaction["amount"].replace(",", "")
+            transaction["amount"] = float(transaction["amount"])
+        if "balance" in transaction:
+            transaction["balance"] = transaction["balance"].replace(",", "")
+            transaction["balance"] = float(transaction["balance"])
+        return Transaction(**transaction)

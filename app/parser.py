@@ -4,8 +4,8 @@ import logging
 import re
 from typing import List
 
-from models import Message, MessageStatus, PatternAction, Sender, SenderComparisonType, SenderStatus
-from db import add_sender, get_patterns, get_senders, update_message_status
+from models import Message, MessageStatus, PatternAction, Sender, SenderComparisonType, SenderStatus, Transaction
+from db import add_sender, add_transactions, get_patterns, get_senders, update_message_status
 
 
 reject_keywords = []
@@ -51,6 +51,7 @@ def set_matched(email: str, messages: List[Message]):
 def parseMessages(email: str, messages: List[Message]):
     rejected = []
     matched = []
+    transactions = []
     for message in messages:
         sender = message.sender
         if not sender:
@@ -64,19 +65,24 @@ def parseMessages(email: str, messages: List[Message]):
             continue
         sms = message.sms
         timestamp = message.timestamp
-        success, status, pattern = parseMessage(message)
+        success, status, pattern, transaction = parseMessage(message)
         if success:
             message.status = status
             if pattern:
                 message.matchedPattern = pattern.id
             if status == MessageStatus.matched:
+                if transaction is not None and pattern and pattern.metadata:
+                    transaction = {**transaction, **pattern.metadata, "timestamp": timestamp, "id": message.id}
+                    transaction = Transaction.from_json(transaction)
                 matched.append(message)
+                transactions.append(transaction)
             else:
                 rejected.append(message)
         else:
             message.status = MessageStatus.unprocessed
     reject(email, rejected)
     set_matched(email, matched)
+    add_transactions(email, transactions)
 
 def parseMessage(message: Message):
     patterns = get_patterns()
@@ -85,10 +91,10 @@ def parseMessage(message: Message):
             success, details = extract_sms_details(pattern.pattern, message.sms)
             if success:
                 if pattern.action == PatternAction.approve:
-                    return True, MessageStatus.matched, pattern
+                    return True, MessageStatus.matched, pattern, details
                 else:
-                    return True, MessageStatus.rejected, pattern
-    return False, MessageStatus.unprocessed, None
+                    return True, MessageStatus.rejected, pattern, None
+    return False, MessageStatus.unprocessed, None, None
 
 def isValidSender(sender: str):
     senders = get_senders()
