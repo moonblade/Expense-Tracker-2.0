@@ -38,4 +38,9 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
     - Created a react frontend component after a false start with basic html js. The react app now has google login and a dark/light theme.
     ![](https://i.imgur.com/EkMXPq2.png)
 
+- 2025-01-18
+    - Added page for patterns and messages, when message is clicked, it opens dialog to add/edit the pattern.
+    - Added senders page to reject senders that are not needed.
 
+- 2025-01-25
+    - Added transactions whenever refresh is done

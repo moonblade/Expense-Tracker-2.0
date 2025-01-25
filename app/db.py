@@ -1,5 +1,5 @@
 from typing import List
-from models import Message, MessageStatus, Pattern, Sender
+from models import Message, MessageStatus, Pattern, Sender, Transaction
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -100,6 +100,21 @@ def update_message_status(email: str, messages: List[Message]):
     for message in messages:
         sms_doc_ref = db.collection("sms").document(email).collection("messages").document(message.id)
         batch.update(sms_doc_ref, {"status": message.status.value, "matchedPattern": message.matchedPattern})
+
+    try:
+        batch.commit()
+    except Exception as e:
+        print(f"Error updating message statuses: {e}")
+
+def add_transactions(email: str, transactions: List[Transaction]):
+    if not transactions:
+        return False
+
+    batch = db.batch()
+
+    for transaction in transactions:
+        transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction.id)
+        batch.set(transaction_ref, transaction.dict(), merge=True)
 
     try:
         batch.commit()
