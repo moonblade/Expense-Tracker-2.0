@@ -57,12 +57,15 @@ const categoryIcons = {
   entertainment: <EntertainmentIcon />,
 };
 
+const filterTypes = ["credit", "debit"];
+
 function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [total, setTotal] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [filterType, setFilterType] = useState("debit");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -85,6 +88,10 @@ function Transactions() {
 
   const handleFilterChange = (event) => {
     setFilterCategory(event.target.value);
+  };
+
+  const handleTypeChange = (event) => {
+    setFilterType(event.target.value);
   };
 
   const handleRefreshTransactions = async () => {
@@ -165,13 +172,13 @@ function Transactions() {
       const queryMatch =
         transaction.merchant.toLowerCase().includes(searchQuery) ||
         transaction.account.toLowerCase().includes(searchQuery);
-      const categoryMatch =
-        filterCategory === "all" || transaction.category === filterCategory;
-      return queryMatch && categoryMatch;
+      const categoryMatch = filterCategory === "all" || transaction.category === filterCategory;
+      const typeMatch = filterType === "all" || transaction.transactiontype === filterType;
+      return queryMatch && categoryMatch && typeMatch;
     });
 
     setFilteredTransactions(filtered);
-  }, [transactions, searchQuery, filterCategory]);
+  }, [transactions, searchQuery, filterCategory, filterType]);
 
   useEffect(() => {
     const total = filteredTransactions.reduce((sum, transaction) => {
@@ -310,6 +317,22 @@ function Transactions() {
             {Object.keys(categoryIcons).map((key) => (
               <MenuItem key={key} value={key}>
                 {key.charAt(0).toUpperCase() + key.slice(1)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Transaction</InputLabel>
+          <Select
+            value={filterType}
+            onChange={handleTypeChange}
+            label="Transaction"
+          >
+            <MenuItem value="all">All</MenuItem>
+            {filterTypes.map((filter) => (
+              <MenuItem key={filter} value={filter}>
+                {filter.charAt(0).toUpperCase() + filter.slice(1)}
               </MenuItem>
             ))}
           </Select>
