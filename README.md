@@ -44,3 +44,6 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
 - 2025-01-25
     - Added transactions whenever refresh is done
+
+- 2025-01-26
+    - Adding a transactions page, with ignore/unignore and categorize buttons.
