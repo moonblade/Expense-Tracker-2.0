@@ -132,3 +132,24 @@ export const updatePattern = async (pattern) => {
     throw error; // Re-throwing the error so that it can be handled where the function is called
   }
 };
+
+export const fetchTransactions = async () => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch transactions");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    return [];
+  }
+};
+
+
