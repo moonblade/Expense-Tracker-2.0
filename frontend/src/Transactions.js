@@ -35,19 +35,23 @@ import {
   Theaters as EntertainmentIcon,
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
-import { fetchTransactions } from "./query.svc";
+import {
+  fetchTransactions,
+  ignoreTransaction,
+  unignoreTransaction,
+} from "./query.svc";
 
 const categoryIcons = {
-  uncategorized: <UncategorizedIcon />, 
-  travel: <TravelIcon />, 
-  family: <FamilyIcon />, 
-  food: <FoodIcon />, 
-  friends: <FriendsIcon />, 
-  health: <HealthIcon />, 
-  home: <HomeIcon />, 
-  charity: <CharityIcon />, 
-  shopping: <ShoppingIcon />, 
-  investment: <InvestmentIcon />, 
+  uncategorized: <UncategorizedIcon />,
+  travel: <TravelIcon />,
+  family: <FamilyIcon />,
+  food: <FoodIcon />,
+  friends: <FriendsIcon />,
+  health: <HealthIcon />,
+  home: <HomeIcon />,
+  charity: <CharityIcon />,
+  shopping: <ShoppingIcon />,
+  investment: <InvestmentIcon />,
   entertainment: <EntertainmentIcon />,
 };
 
@@ -101,10 +105,22 @@ function Transactions() {
     setSelectedTransaction(null);
   };
 
-  const handleIgnore = () => {
-    console.log("Ignored transaction:", selectedTransaction);
-    handleMenuClose();
+  const handleIgnore = async () => {
+    if (!selectedTransaction) return;
+    try {
+      if (selectedTransaction.ignore) {
+        await unignoreTransaction(selectedTransaction.id);
+      } else {
+        await ignoreTransaction(selectedTransaction.id);
+      }
+      handleRefreshTransactions();
+    } catch (error) {
+      console.error("Error updating transaction ignore status:", error);
+    } finally {
+      handleMenuClose();
+    }
   };
+
 
   const handleCategorize = () => {
     setCategoryDialogOpen(true);
@@ -127,32 +143,24 @@ function Transactions() {
   };
 
   const totalSpent = transactions.reduce(
-    (sum, transaction) => sum + (transaction.transactiontype === "debit" ? transaction.amount : 0),
+    (sum, transaction) =>
+      !transaction.ignore && transaction.transactiontype === "debit"
+        ? sum + transaction.amount
+        : sum,
     0
   );
 
   const columns = [
-    {
-      field: "id",
-      headerName: "ID",
-      flex: 1,
-    },
-    {
-      field: "merchant",
-      headerName: "Merchant",
-      flex: 1,
-    },
+    { field: "id", headerName: "ID", flex: 1 },
+    { field: "ignore", headerName: "Ignore", flex: 1 },
     {
       field: "category",
       headerName: "Category",
       flex: 1,
       renderCell: (params) => categoryIcons[params.value.toLowerCase()] || <UncategorizedIcon />,
     },
-    {
-      field: "account",
-      headerName: "Account",
-      flex: 1,
-    },
+    { field: "merchant", headerName: "Merchant", flex: 1 },
+    { field: "account", headerName: "Account", flex: 1 },
     {
       field: "amount",
       headerName: "Amount",
@@ -205,12 +213,10 @@ function Transactions() {
         Transactions
       </Typography>
 
-      {/* Total Spent */}
       <Typography variant="h6" color="textSecondary" mb={2}>
         Total Spent: ₹{totalSpent.toLocaleString("en-IN")}
       </Typography>
 
-      {/* Search and Filter */}
       <Stack direction="row" spacing={2} alignItems="center" mb={2}>
         <TextField
           variant="outlined"
@@ -240,7 +246,6 @@ function Transactions() {
           </Select>
         </FormControl>
 
-        {/* Refresh Transactions Button */}
         <IconButton
           onClick={handleRefreshTransactions}
           color="primary"
@@ -251,12 +256,9 @@ function Transactions() {
         </IconButton>
       </Stack>
 
-      {/* Data Grid */}
       <Box sx={{ flex: 1 }}>
         <DataGrid
-          columnVisibilityModel={{
-            id: false,
-          }}
+          columnVisibilityModel={{id: false, ignore: false}}
           rows={transactions}
           columns={columns}
           pageSize={10}
@@ -266,18 +268,18 @@ function Transactions() {
         />
       </Box>
 
-      {/* Menu */}
       <Menu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleIgnore}>Ignore</MenuItem>
+        <MenuItem onClick={handleIgnore}>
+          {selectedTransaction?.ignore ? "Unignore" : "Ignore"}
+        </MenuItem>
         <MenuItem onClick={handleCategorize}>Categorize</MenuItem>
         <MenuItem onClick={handleReason}>Add Reason</MenuItem>
       </Menu>
 
-      {/* Category Dialog */}
       <Dialog open={isCategoryDialogOpen} onClose={() => setCategoryDialogOpen(false)}>
         <DialogTitle>Select a Category</DialogTitle>
         <DialogContent>
@@ -297,7 +299,6 @@ function Transactions() {
         </DialogActions>
       </Dialog>
 
-      {/* Reason Dialog */}
       <Dialog open={isReasonDialogOpen} onClose={() => setReasonDialogOpen(false)}>
         <DialogTitle>Add Reason</DialogTitle>
         <DialogContent>
