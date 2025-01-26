@@ -19,33 +19,35 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
-import MoreVertIcon from "@mui/icons-material/MoreVert"; // Menu icon
-import { 
-  Flight as TravelIcon, 
-  FamilyRestroom as FamilyIcon, 
-  Restaurant as FoodIcon, 
-  Group as FriendsIcon, 
-  LocalHospital as HealthIcon, 
-  Home as HomeIcon, 
-  VolunteerActivism as CharityIcon, 
-  ShoppingCart as ShoppingIcon, 
-  TrendingUp as InvestmentIcon, 
-  Theaters as EntertainmentIcon, 
-  HelpOutline as UncategorizedIcon 
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import {
+  Flight as TravelIcon,
+  FamilyRestroom as FamilyIcon,
+  Restaurant as FoodIcon,
+  Group as FriendsIcon,
+  LocalHospital as HealthIcon,
+  Home as HomeIcon,
+  VolunteerActivism as CharityIcon,
+  ShoppingCart as ShoppingIcon,
+  TrendingUp as InvestmentIcon,
+  Theaters as EntertainmentIcon,
+  HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
 import { fetchTransactions } from "./query.svc";
 
 const categoryIcons = {
-  uncategorized: <UncategorizedIcon />,
-  travel: <TravelIcon />,
-  family: <FamilyIcon />,
-  food: <FoodIcon />,
-  friends: <FriendsIcon />,
-  health: <HealthIcon />,
-  home: <HomeIcon />,
-  charity: <CharityIcon />,
-  shopping: <ShoppingIcon />,
-  investment: <InvestmentIcon />,
+  uncategorized: <UncategorizedIcon />, 
+  travel: <TravelIcon />, 
+  family: <FamilyIcon />, 
+  food: <FoodIcon />, 
+  friends: <FriendsIcon />, 
+  health: <HealthIcon />, 
+  home: <HomeIcon />, 
+  charity: <CharityIcon />, 
+  shopping: <ShoppingIcon />, 
+  investment: <InvestmentIcon />, 
   entertainment: <EntertainmentIcon />,
 };
 
@@ -124,7 +126,17 @@ function Transactions() {
     setReasonDialogOpen(false);
   };
 
+  const totalSpent = transactions.reduce(
+    (sum, transaction) => sum + (transaction.transactiontype === "debit" ? transaction.amount : 0),
+    0
+  );
+
   const columns = [
+    {
+      field: "id",
+      headerName: "ID",
+      flex: 1,
+    },
     {
       field: "merchant",
       headerName: "Merchant",
@@ -162,6 +174,17 @@ function Transactions() {
         }),
     },
     {
+      field: "transactiontype",
+      headerName: "Type",
+      flex: 1,
+      renderCell: (params) =>
+        params.value === "credit" ? (
+          <ArrowUpwardIcon style={{ color: "green" }} />
+        ) : (
+          <ArrowDownwardIcon style={{ color: "red" }} />
+        ),
+    },
+    {
       field: "actions",
       headerName: "Actions",
       flex: 0.5,
@@ -177,9 +200,14 @@ function Transactions() {
   ];
 
   return (
-    <Box p={3}>
+    <Box sx={{ height: "100vh", p: 3, display: "flex", flexDirection: "column" }}>
       <Typography variant="h5" gutterBottom>
         Transactions
+      </Typography>
+
+      {/* Total Spent */}
+      <Typography variant="h6" color="textSecondary" mb={2}>
+        Total Spent: ₹{totalSpent.toLocaleString("en-IN")}
       </Typography>
 
       {/* Search and Filter */}
@@ -224,8 +252,11 @@ function Transactions() {
       </Stack>
 
       {/* Data Grid */}
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Box sx={{ flex: 1 }}>
         <DataGrid
+          columnVisibilityModel={{
+            id: false,
+          }}
           rows={transactions}
           columns={columns}
           pageSize={10}
