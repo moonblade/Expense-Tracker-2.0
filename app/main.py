@@ -1,7 +1,7 @@
 import os
 from auth import validate_token
 from typing import List
-from models import IgnoreTransactionRequest, Pattern, UpdateSendersRequest
+from models import CategorizeTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
 from fastapi import FastAPI, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
@@ -9,7 +9,7 @@ from db import get_patterns, get_senders, get_transactions, read_messages, read_
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from transactions import ignore_transaction, unignore_transaction
+from transactions import categorize_transaction, ignore_transaction, unignore_transaction
 import uvicorn
 import logging
 
@@ -93,6 +93,11 @@ def _ignore_transaction(request: IgnoreTransactionRequest, email = Security(getE
 @app.post("/transaction/unignore")
 def _unignore_transaction(request: IgnoreTransactionRequest, email = Security(getEmail)):
     unignore_transaction(request.transaction_id, email)
+    return "ok"
+
+@app.post("/transaction/categorize")
+def _categorize_transaction(request: CategorizeTransactionRequest, email = Security(getEmail)):
+    categorize_transaction(request.transaction_id, request.category, email)
     return "ok"
 
 if __name__ == "__main__":

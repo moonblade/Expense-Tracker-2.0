@@ -196,3 +196,27 @@ export const unignoreTransaction = async (transactionId) => {
   }
 };
 
+export const categorizeTransaction = async (transactionId, category) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/transaction/categorize`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ 
+        transaction_id: transactionId, 
+        category 
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to categorize transaction");
+    }
+    return "ok";
+  } catch (error) {
+    console.error("Error categorizing transaction:", error);
+    throw error;
+  }
+};

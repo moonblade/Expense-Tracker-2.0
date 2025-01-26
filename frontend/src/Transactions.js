@@ -36,6 +36,7 @@ import {
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
 import {
+    categorizeTransaction,
   fetchTransactions,
   ignoreTransaction,
   unignoreTransaction,
@@ -100,9 +101,10 @@ function Transactions() {
     setSelectedTransaction(transaction);
   };
 
-  const handleMenuClose = () => {
+  const handleMenuClose = (removeSelectedTransaction = true) => {
     setMenuAnchorEl(null);
-    setSelectedTransaction(null);
+    if (removeSelectedTransaction)
+      setSelectedTransaction(null);
   };
 
   const handleIgnore = async () => {
@@ -124,7 +126,7 @@ function Transactions() {
 
   const handleCategorize = () => {
     setCategoryDialogOpen(true);
-    handleMenuClose();
+    handleMenuClose(false);
   };
 
   const handleReason = () => {
@@ -132,9 +134,21 @@ function Transactions() {
     handleMenuClose();
   };
 
-  const handleCategorySelect = (category) => {
-    console.log("Categorized as:", category);
-    setCategoryDialogOpen(false);
+  const handleCategorySelect = async (category) => {
+    if (!selectedTransaction) {
+      console.log("No transaction selected for categorization")
+      return;
+    }
+    try {
+      await categorizeTransaction(selectedTransaction.id, category);
+      await handleRefreshTransactions(); // Refresh data
+      console.log(`Transaction ${selectedTransaction.id} categorized as ${category}`);
+    } catch (error) {
+      console.error("Error categorizing transaction:", error);
+      // Show error feedback to the user
+    } finally {
+      setCategoryDialogOpen(false); // Close dialog
+    }
   };
 
   const handleReasonSubmit = () => {
