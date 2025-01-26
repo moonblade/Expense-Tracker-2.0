@@ -69,6 +69,7 @@ class Transaction(BaseModel):
     merchant: str = ""
     date: str = ""
     balance: float = 0
+    ignore: bool = False
     type: str = ""
     transactiontype: TransactionType = TransactionType.debit
     category: Category = Category.uncategorized
@@ -82,3 +83,6 @@ class Transaction(BaseModel):
             transaction["balance"] = transaction["balance"].replace(",", "")
             transaction["balance"] = float(transaction["balance"])
         return Transaction(**transaction)
+
+class IgnoreTransactionRequest(BaseModel):
+    transaction_id: str

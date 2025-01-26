@@ -152,4 +152,47 @@ export const fetchTransactions = async () => {
   }
 };
 
+export const ignoreTransaction = async (transactionId) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/transaction/ignore`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ transaction_id: transactionId }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to ignore transaction");
+    }
+    return "ok";
+  } catch (error) {
+    console.error("Error ignoring transaction:", error);
+    throw error;
+  }
+};
+
+export const unignoreTransaction = async (transactionId) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/transaction/unignore`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ transaction_id: transactionId }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to unignore transaction");
+    }
+    return "ok";
+  } catch (error) {
+    console.error("Error unignoring transaction:", error);
+    throw error;
+  }
+};
 
