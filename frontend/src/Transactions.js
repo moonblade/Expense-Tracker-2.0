@@ -145,14 +145,14 @@ function Transactions() {
       field: "amount",
       headerName: "Amount",
       flex: 1,
-      valueFormatter: (params) => `₹${params.value}`,
+      valueFormatter: (value) => `₹${value}`,
     },
     {
       field: "timestamp",
       headerName: "Date",
       flex: 1,
-      valueFormatter: (params) =>
-        new Date(params.value * 1000).toLocaleString("en-IN", {
+      valueFormatter: (value) =>
+        new Date(value * 1000).toLocaleString("en-IN", {
           hour12: true,
           hour: "numeric",
           minute: "numeric",
