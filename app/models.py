@@ -44,6 +44,23 @@ class Pattern(BaseModel):
     metadata: Dict[str, str] = {}
     action: PatternAction = PatternAction.approve
 
+class TransactionType(str, Enum):
+    debit = "debit"
+    credit = "credit"
+
+class Category(str, Enum):
+    uncategorized = "uncategorized"
+    travel = "travel"
+    family = "family"
+    food = "food"
+    friends = "friends"
+    health = "health"
+    home = "home"
+    charity = "charity"
+    shopping = "shopping"
+    investment = "investment"
+    entertainment = "entertainment"
+
 class Transaction(BaseModel):
     id: str = ""
     amount: float = 0
@@ -53,7 +70,8 @@ class Transaction(BaseModel):
     date: str = ""
     balance: float = 0
     type: str = ""
-    transactiontype: str = "debit"
+    transactiontype: TransactionType = TransactionType.debit
+    category: Category = Category.uncategorized
 
     @staticmethod
     def from_json(transaction: Dict):
