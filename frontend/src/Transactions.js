@@ -39,6 +39,7 @@ import {
     categorizeTransaction,
   fetchTransactions,
   ignoreTransaction,
+  processMessages,
   unignoreTransaction,
 } from "./query.svc";
 
@@ -58,6 +59,8 @@ const categoryIcons = {
 
 function Transactions() {
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [total, setTotal] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -85,6 +88,7 @@ function Transactions() {
   };
 
   const handleRefreshTransactions = async () => {
+    processMessages();
     setIsRefreshing(true);
     try {
       const data = await fetchTransactions();
@@ -156,13 +160,27 @@ function Transactions() {
     setReasonDialogOpen(false);
   };
 
-  const totalSpent = transactions.reduce(
-    (sum, transaction) =>
-      !transaction.ignore && transaction.transactiontype === "debit"
+  useEffect(() => {
+    const filtered = transactions.filter((transaction) => {
+      const queryMatch =
+        transaction.merchant.toLowerCase().includes(searchQuery) ||
+        transaction.account.toLowerCase().includes(searchQuery);
+      const categoryMatch =
+        filterCategory === "all" || transaction.category === filterCategory;
+      return queryMatch && categoryMatch;
+    });
+
+    setFilteredTransactions(filtered);
+  }, [transactions, searchQuery, filterCategory]);
+
+  useEffect(() => {
+    const total = filteredTransactions.reduce((sum, transaction) => {
+      return !transaction.ignore && transaction.transactiontype === "debit"
         ? sum + transaction.amount
-        : sum,
-    0
-  );
+        : sum;
+    }, 0);
+    setTotal(total);
+  }, [filteredTransactions]);
 
   const columns = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -265,7 +283,7 @@ function Transactions() {
       </Typography>
 
       <Typography variant="h6" color="textSecondary" mb={2}>
-        Total Spent: ₹{totalSpent.toLocaleString("en-IN")}
+        Total Spent: ₹{total.toLocaleString("en-IN")}
       </Typography>
 
       <Stack direction="row" spacing={2} alignItems="center" mb={2}>
@@ -310,7 +328,7 @@ function Transactions() {
       <Box sx={{ flex: 1 }}>
         <DataGrid
           columnVisibilityModel={{id: false, ignore: false}}
-          rows={transactions}
+          rows={filteredTransactions}
           columns={columns}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
