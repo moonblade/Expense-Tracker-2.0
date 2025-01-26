@@ -1,5 +1,5 @@
 from typing import List
-from models import Message, MessageStatus, Pattern, Sender, Transaction
+from models import Category, Message, MessageStatus, Pattern, Sender, Transaction
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -106,7 +106,7 @@ def update_message_status(email: str, messages: List[Message]):
     except Exception as e:
         print(f"Error updating message statuses: {e}")
 
-def add_transactions(email: str, transactions: List[Transaction]):
+def add_transactions_db(email: str, transactions: List[Transaction]):
     if not transactions:
         return False
 
@@ -151,3 +151,18 @@ def get_transaction(email, transaction_id):
 def update_transaction(email, transaction_id, transaction):
     transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
     transaction_ref.set(transaction.dict(), merge=True)
+
+@cache
+def get_merchants():
+    merchant_collection = db.collection("merchant")
+    query = merchant_collection.stream()
+    merchants = {}
+    for doc in query:
+        doc_dict = doc.to_dict()
+        merchants[doc.id] = doc_dict
+    return merchants
+
+def add_merchant(merchant: str, category: Category):
+    merchant_collection = db.collection("merchant")
+    merchant_collection.document(merchant).set({"category": category.value}, merge=True)
+    get_merchants.cache_clear()

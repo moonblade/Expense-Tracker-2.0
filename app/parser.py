@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import datetime
 import json
 import logging
@@ -5,11 +6,13 @@ import re
 from typing import List
 
 from models import Message, MessageStatus, PatternAction, Sender, SenderComparisonType, SenderStatus, Transaction
-from db import add_sender, add_transactions, get_patterns, get_senders, update_message_status
+from db import add_sender, get_patterns, get_senders, update_message_status
+from transactions import add_transactions
 
 
 reject_keywords = []
 regexes = []
+executor = ThreadPoolExecutor()
 
 def extract_sms_details(regex: str, sms: str):
     """
@@ -82,7 +85,8 @@ def parseMessages(email: str, messages: List[Message]):
             message.status = MessageStatus.unprocessed
     reject(email, rejected)
     set_matched(email, matched)
-    add_transactions(email, transactions)
+    executor.submit(add_transactions, email, transactions)
+    # add_transactions(email, transactions)
 
 def parseMessage(message: Message):
     patterns = get_patterns()
