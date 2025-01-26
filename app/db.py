@@ -114,12 +114,16 @@ def add_transactions(email: str, transactions: List[Transaction]):
 
     for transaction in transactions:
         transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction.id)
-        batch.set(transaction_ref, transaction.dict(), merge=True)
+
+        if not transaction_ref.get().exists:
+            batch.set(transaction_ref, transaction.dict(), merge=True)
 
     try:
         batch.commit()
+        return True
     except Exception as e:
-        print(f"Error updating message statuses: {e}")
+        print(f"Error updating transactions: {e}")
+        return False
 
 def get_transactions(email, days_ago_start=30):
     start_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago_start)
