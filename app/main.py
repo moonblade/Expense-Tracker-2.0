@@ -10,8 +10,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from transactions import categorize_transaction, ignore_transaction, unignore_transaction
+from apscheduler.schedulers.background import BackgroundScheduler
 import uvicorn
 import logging
+from datetime import datetime
 
 jwt_bearer = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +34,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def hourly_task():
+    with open("./secrets/email.txt") as f:
+        email = f.read().strip()
+    logging.info(f"Running scheduled task for email: {email} at {datetime.now()}")
+    messages = read_messages(email, 1)
+    parseMessages(email, messages)
+    logging.info(f"Finished processing messages for email: {email}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(hourly_task, "interval", hours=1)
+scheduler.start()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    scheduler.shutdown()
 
 def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -> str:
     if credentials and credentials.scheme == "Bearer":

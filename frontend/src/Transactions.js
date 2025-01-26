@@ -173,13 +173,50 @@ function Transactions() {
       flex: 1,
       renderCell: (params) => categoryIcons[params.value.toLowerCase()] || <UncategorizedIcon />,
     },
-    { field: "merchant", headerName: "Merchant", flex: 1 },
-    { field: "account", headerName: "Account", flex: 1 },
+    {
+    field: "merchant",
+    headerName: "Merchant",
+    flex: 1,
+    renderCell: (params) => (
+        <Typography
+          sx={{
+            textDecoration: params.row.ignore ? "line-through" : "none",
+            color: params.row.ignore ? "text.secondary" : "inherit",
+          }}
+        >
+          {params.value}
+        </Typography>
+      ),
+    },
+    {
+      field: "account",
+      headerName: "Account",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography
+          sx={{
+            textDecoration: params.row.ignore ? "line-through" : "none",
+            color: params.row.ignore ? "text.secondary" : "inherit",
+          }}
+        >
+          {params.value}
+        </Typography>
+      ),
+    },
     {
       field: "amount",
       headerName: "Amount",
       flex: 1,
-      valueFormatter: (value) => `₹${value}`,
+      renderCell: (params) => (
+        <Typography
+          sx={{
+            textDecoration: params.row.ignore ? "line-through" : "none",
+            color: params.row.ignore ? "text.secondary" : "inherit",
+          }}
+        >
+          ₹{params.value.toLocaleString("en-IN")}
+        </Typography>
+      ),
     },
     {
       field: "timestamp",
