@@ -15,10 +15,12 @@ import MenuIcon from "@mui/icons-material/Menu"; // Hamburger icon
 import SendIcon from "@mui/icons-material/Send";
 import MessageIcon from "@mui/icons-material/Message";
 import BuildIcon from "@mui/icons-material/Build"; // New icon for Pattern
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn"; // Icon for Transactions
 import Senders from "./Senders";
 import Messages from "./Messages"; // Import the Messages component
 import LoginContext from "./LoginContext";
 import Pattern from "./Pattern";
+import Transactions from "./Transactions"; // Import the Transactions component
 
 const drawerWidth = 240;
 
@@ -100,7 +102,8 @@ function MainContent() {
           {[
             { name: "Senders", icon: SendIcon },
             { name: "Messages", icon: MessageIcon },
-            { name: "Patterns", icon: BuildIcon }, // Updated to "Pattern"
+            { name: "Patterns", icon: BuildIcon },
+            { name: "Transactions", icon: MonetizationOnIcon }, // New Transactions item
           ].map((item) => (
             <ListItem disablePadding key={item.name}>
               <ListItemButton onClick={() => handleNavigation(item.name)}>
@@ -129,6 +132,7 @@ function MainContent() {
         {selectedComponent === "Senders" && <Senders />}
         {selectedComponent === "Patterns" && <Pattern />}
         {selectedComponent === "Messages" && <Messages />}
+        {selectedComponent === "Transactions" && <Transactions />} {/* New Transactions page */}
       </Box>
     </>
   );

@@ -5,7 +5,7 @@ from models import Pattern, UpdateSendersRequest
 from fastapi import FastAPI, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_patterns, get_senders, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
+from db import get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -78,6 +78,11 @@ def _get_senders(email = Security(getEmail)):
     senders = get_senders()
     senders = [sender.dict() for sender in senders] 
     return {"senders": senders}
+
+@app.get("/transactions")
+def _get_transactions(email = Security(getEmail)):
+    transactions = get_transactions(email)
+    return {"transactions": transactions}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)

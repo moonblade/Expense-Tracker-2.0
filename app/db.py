@@ -121,3 +121,18 @@ def add_transactions(email: str, transactions: List[Transaction]):
     except Exception as e:
         print(f"Error updating message statuses: {e}")
 
+def get_transactions(email, days_ago_start=30):
+    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago_start)
+    start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_timestamp = int(start_date.timestamp())
+
+    transaction_collection = db.collection("transaction").document(email).collection("transaction")
+    filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
+    query = transaction_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+
+    transactions = []
+    for doc in query:
+        doc_dict = doc.to_dict()
+        transactions.append(Transaction(**doc_dict))
+
+    return transactions
