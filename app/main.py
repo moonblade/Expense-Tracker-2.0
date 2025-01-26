@@ -49,7 +49,7 @@ scheduler = BackgroundScheduler()
 @app.on_event("startup")
 def start_scheduler():
     if scheduler.state != STATE_RUNNING:
-        scheduler.add_job(hourly_task, "interval", hours=1, id="hourly_task")
+        scheduler.add_job(hourly_task, "interval", minutes=30, id="hourly_task")
         scheduler.start()
         logging.info("Scheduler started")
 
