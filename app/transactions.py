@@ -1,6 +1,6 @@
 from typing import List
 from db import get_transaction, update_transaction
-from models import Transaction
+from models import Category, Transaction
 from fastapi import HTTPException
 
 def ignore_transaction(transaction_id: str, email: str) -> str:
@@ -19,3 +19,10 @@ def unignore_transaction(transaction_id: str, email: str) -> str:
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
+def categorize_transaction(transaction_id: str, category: Category, email: str) -> str:
+    transaction = get_transaction(email, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=400, detail="Transaction not found")
+    transaction.category = category
+    update_transaction(email, transaction.id, transaction)
+    return "ok"
