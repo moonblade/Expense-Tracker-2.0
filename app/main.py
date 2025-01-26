@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from transactions import categorize_transaction, ignore_transaction, unignore_transaction
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.base import STATE_RUNNING
 import uvicorn
 import logging
 from datetime import datetime
@@ -44,8 +45,13 @@ def hourly_task():
     logging.info(f"Finished processing messages for email: {email}")
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(hourly_task, "interval", hours=1)
-scheduler.start()
+
+@app.on_event("startup")
+def start_scheduler():
+    if scheduler.state != STATE_RUNNING:
+        scheduler.add_job(hourly_task, "interval", hours=1, id="hourly_task")
+        scheduler.start()
+        logging.info("Scheduler started")
 
 @app.on_event("shutdown")
 def shutdown_event():
@@ -120,3 +126,4 @@ def _categorize_transaction(request: CategorizeTransactionRequest, email = Secur
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
+
