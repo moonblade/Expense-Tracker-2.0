@@ -8,8 +8,10 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  IconButton,
   Button,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu"; // Hamburger icon
 import SendIcon from "@mui/icons-material/Send";
 import MessageIcon from "@mui/icons-material/Message";
 import BuildIcon from "@mui/icons-material/Build"; // New icon for Pattern
@@ -21,7 +23,7 @@ import Pattern from "./Pattern";
 const drawerWidth = 240;
 
 function MainContent() {
-  const [drawerOpen, ] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const [selectedComponent, setSelectedComponent] = useState(
     () => localStorage.getItem("selectedComponent") || "Senders"
   );
@@ -30,6 +32,10 @@ function MainContent() {
   const handleNavigation = (component) => {
     setSelectedComponent(component);
     localStorage.setItem("selectedComponent", component); // Save to localStorage
+  };
+
+  const toggleDrawer = () => {
+    setDrawerOpen((prev) => !prev);
   };
 
   useEffect(() => {
@@ -86,6 +92,9 @@ function MainContent() {
         }}
       >
         <Toolbar />
+        <IconButton onClick={toggleDrawer}>
+          <MenuIcon />
+        </IconButton>
         <List>
           {/* Navigation Items */}
           {[
