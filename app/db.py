@@ -136,3 +136,14 @@ def get_transactions(email, days_ago_start=30):
         transactions.append(Transaction(**doc_dict))
 
     return transactions
+
+def get_transaction(email, transaction_id):
+    transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
+    transaction = transaction_ref.get()
+    if transaction.exists:
+        return Transaction(**transaction.to_dict())
+    return None
+
+def update_transaction(email, transaction_id, transaction):
+    transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
+    transaction_ref.set(transaction.dict(), merge=True)
