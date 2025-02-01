@@ -51,6 +51,25 @@ function Messages() {
   }, [filterStatus]);
 
   useEffect(() => {
+    const filterMessages = (query, status) => {
+      let updatedMessages = messages;
+
+      if (status !== "all") {
+        updatedMessages = updatedMessages.filter(
+          (msg) => msg.status.toLowerCase() === status
+        );
+      }
+
+      if (query) {
+        updatedMessages = updatedMessages.filter(
+          (msg) =>
+            msg.sender.toLowerCase().includes(query.toLowerCase()) ||
+            msg.sms.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+
+      setFilteredMessages(updatedMessages);
+    };
     localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
     filterMessages(searchQuery, filterStatus);
   }, [filterStatus, searchQuery, messages]);
@@ -65,25 +84,7 @@ function Messages() {
     setFilterStatus(event.target.value);
   };
 
-  const filterMessages = (query, status) => {
-    let updatedMessages = messages;
 
-    if (status !== "all") {
-      updatedMessages = updatedMessages.filter(
-        (msg) => msg.status.toLowerCase() === status
-      );
-    }
-
-    if (query) {
-      updatedMessages = updatedMessages.filter(
-        (msg) =>
-          msg.sender.toLowerCase().includes(query.toLowerCase()) ||
-          msg.sms.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    setFilteredMessages(updatedMessages);
-  };
 
   const handleProcessMessages = async () => {
     setIsProcessing(true);

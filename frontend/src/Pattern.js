@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   IconButton,
   Stack,
   TextField,
@@ -16,10 +14,13 @@ import {
   FormControl,
   Select,
   InputLabel,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { fetchPatterns, updatePattern } from "./query.svc";
-import Messages from "./Messages";
 
 function Pattern() {
   const [patterns, setPatterns] = useState([]);
@@ -63,16 +64,16 @@ function Pattern() {
     setIsDialogOpen(true);
   };
 
-  const handleAddPattern = (sender, message) => {
-    setSelectedPattern({
-      sender,
-      pattern: message,
-      name: "",
-      action: "approve",
-      metadata: {},
-    });
-    setIsDialogOpen(true);
-  };
+  // const handleAddPattern = (sender, message) => {
+  //   setSelectedPattern({
+  //     sender,
+  //     pattern: message,
+  //     name: "",
+  //     action: "approve",
+  //     metadata: {},
+  //   });
+  //   setIsDialogOpen(true);
+  // };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
@@ -116,20 +117,6 @@ function Pattern() {
     }
   };
 
-  const handleMessageClick = (msg) => {
-    if (msg.matchedPattern) {
-      // Find the matching pattern by id
-      const matchedPattern = patterns.find(
-        (pattern) => pattern.id === msg.matchedPattern
-      );
-      if (matchedPattern) {
-        handleCardClick(matchedPattern);
-        return;
-      }
-    }
-    handleAddPattern(msg.sender.split("-")[1], msg.sms);
-  };
-
   return (
     <Box p={3}>
       <Typography variant="h5" gutterBottom>
@@ -152,46 +139,42 @@ function Pattern() {
       </Stack>
 
       {/* Patterns List */}
-      <Box>
+      <List>
         {filteredPatterns.map((pattern, index) => (
-          <Card
-            key={index}
-            onClick={() => handleCardClick(pattern)}
-            sx={{
-              marginBottom: 2,
-              borderLeft: `4px solid ${
-                pattern.action === "approve" ? "green" : "red"
-              }`,
-              cursor: "pointer",
-            }}
-          >
-            <CardContent>
-              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                {pattern.sender}
-              </Typography>
-              <Typography variant="body1">{pattern.name}</Typography>
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                style={{ fontFamily: "monospace" }}
-              >
-                {pattern.pattern}
-              </Typography>
-              {pattern.metadata && (
-                <Typography
-                  variant="caption"
-                  color="textSecondary"
-                  display="block"
-                >
-                  {JSON.stringify(pattern.metadata)}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+          <React.Fragment key={index}>
+            <ListItem
+              button
+              onClick={() => handleCardClick(pattern)}
+              sx={{
+                marginBottom: 1,
+                borderLeft: `4px solid ${
+                  pattern.action === "approve" ? "green" : "red"
+                }`,
+              }}
+            >
+              <ListItemText
+                primary={pattern.name}
+                secondary={
+                  <>
+                    <Typography variant="body2" color="textSecondary">
+                      {pattern.sender}
+                    </Typography>
+                    <Typography variant="body2" style={{ fontFamily: "monospace" }}>
+                      {pattern.pattern}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {Object.entries(pattern.metadata || {})
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join(", ")}
+                    </Typography>
+                  </>
+                }
+              />
+            </ListItem>
+            <Divider />
+          </React.Fragment>
         ))}
-      </Box>
-
-      <Messages onMessageClick={handleMessageClick} />
+      </List>
 
       {/* Edit/Add Dialog */}
       {selectedPattern && (
@@ -284,3 +267,4 @@ function Pattern() {
 }
 
 export default Pattern;
+
