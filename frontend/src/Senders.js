@@ -40,7 +40,7 @@ const Senders = () => {
   const handleNavigateToMessages = (senderName) => {
     // Pass the sender name as a query parameter (adjust as needed for your routing)
     console.log("Navigating to messages for sender:", senderName);
-    navigate(`/messages?sender=${encodeURIComponent(senderName)}`);
+    navigate(`/messages?search=${encodeURIComponent(senderName)}`);
   };
 
   // Handle status change for a sender
