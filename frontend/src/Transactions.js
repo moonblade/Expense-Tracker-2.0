@@ -343,7 +343,7 @@ function Transactions() {
         Total Spent: ₹{total.toLocaleString("en-IN")}
       </Typography>
 
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={200}>
         <PieChart>
           <Pie
             data={pieData}
