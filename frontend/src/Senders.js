@@ -96,7 +96,7 @@ const Senders = () => {
   }, [filteredSenders, groupOrder]);
 
   return (
-    <Container maxWidth="md" >
+    <Container>
       <Typography variant="h5" component="h2" gutterBottom>
         Senders
       </Typography>

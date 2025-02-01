@@ -106,7 +106,7 @@ function Messages() {
   };
 
   return (
-    <Container maxWidth="md" >
+    <Container>
       <Typography variant="h5" gutterBottom>
         Messages
       </Typography>
