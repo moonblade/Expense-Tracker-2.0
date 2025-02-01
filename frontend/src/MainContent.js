@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import { createTheme } from '@mui/material/styles';
@@ -14,6 +14,8 @@ import Messages from './Messages';
 import Pattern from './Pattern';
 import Transactions from './Transactions';
 import LoginContext from './LoginContext';
+import { AuthenticationContext, SessionContext } from '@toolpad/core/AppProvider'; // Import Authentication and Session Contexts
+import SignIn from './SignIn';
 
 const NAVIGATION = [
   {
@@ -23,7 +25,7 @@ const NAVIGATION = [
   {
     segment: 'senders',
     title: 'Senders',
-    icon: <AccountBalanceWalletIcon />, 
+    icon: <AccountBalanceWalletIcon />,
   },
   {
     segment: 'messages',
@@ -75,33 +77,55 @@ PageContent.propTypes = {
 
 function MainContent(props) {
   const { window } = props;
-  const { user, login } = React.useContext(LoginContext);
+  const { user, login, logout } = React.useContext(LoginContext); // Use LoginContext
   const router = useDemoRouter('/senders');
   const demoWindow = window !== undefined ? window() : undefined;
 
+  // Set up session and authentication context
+  const [session, setSession] = React.useState(user);
+
+  const authentication = React.useMemo(() => {
+    return {
+      signOut: () => {
+        setSession(null);
+        logout();
+      },
+    };
+  }, [user, logout]);
+
+  useEffect(() => {
+    setSession({"user": {
+      "name": user?.displayName,
+      "email": user?.email,
+      "image": user?.photoURL,
+    }});
+  }, [user]);
+
   if (!user) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh" width="100vw">
-        <button onClick={login}>Login</button>
-      </Box>
-    );
+    return <SignIn />;
   }
 
   return (
-    <AppProvider 
-      navigation={NAVIGATION} 
-      branding={{
-        title: 'Expense Tracker',
-        homeUrl: '/senders',
-      }}
-      router={router} 
-      theme={demoTheme} 
-      window={demoWindow}
-    >
-      <DashboardLayout>
-        <PageContent pathname={router.pathname} />
-      </DashboardLayout>
-    </AppProvider>
+    <AuthenticationContext.Provider value={authentication}> {/* Provide AuthenticationContext */}
+      <SessionContext.Provider value={session}> {/* Provide SessionContext */}
+        <AppProvider 
+          navigation={NAVIGATION} 
+          branding={{
+            title: 'Expense Tracker',
+            homeUrl: '/senders',
+          }}
+          router={router} 
+          theme={demoTheme} 
+          window={demoWindow}
+          session={session}
+          authentication={authentication}
+        >
+          <DashboardLayout>
+            <PageContent pathname={router.pathname} />
+          </DashboardLayout>
+        </AppProvider>
+      </SessionContext.Provider>
+    </AuthenticationContext.Provider>
   );
 }
 
