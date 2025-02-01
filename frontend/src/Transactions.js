@@ -203,7 +203,7 @@ function Transactions() {
     {
       field: "category",
       headerName: "Category",
-      flex: 1,
+      width: 50,
       renderCell: (params) => categoryIcons[params.value.toLowerCase()] || <UncategorizedIcon />,
     },
     {
