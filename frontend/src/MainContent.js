@@ -1,3 +1,4 @@
+import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
@@ -78,7 +79,8 @@ PageContent.propTypes = {
 function MainContent(props) {
   const { window } = props;
   const { user, login, logout } = React.useContext(LoginContext); // Use LoginContext
-  const router = useDemoRouter('/senders');
+  const [storedPage, setStoredPage] = useLocalStorageState('page', '/transactions');
+  const router = useDemoRouter(storedPage);
   const demoWindow = window !== undefined ? window() : undefined;
 
   // Set up session and authentication context
@@ -94,12 +96,19 @@ function MainContent(props) {
   }, [user, logout]);
 
   useEffect(() => {
-    setSession({"user": {
-      "name": user?.displayName,
-      "email": user?.email,
-      "image": user?.photoURL,
-    }});
+    setSession({
+      "user": {
+        "name": user?.displayName,
+        "email": user?.email,
+        "image": user?.photoURL,
+      }
+    });
   }, [user]);
+
+  useEffect(() => {
+    // Store the page in local storage when pathname changes
+    setStoredPage(router.pathname);
+  }, [router.pathname, setStoredPage]);
 
   if (!user) {
     return <SignIn />;
@@ -112,7 +121,7 @@ function MainContent(props) {
           navigation={NAVIGATION} 
           branding={{
             title: 'Expense Tracker',
-            homeUrl: '/senders',
+            homeUrl: '/transactions',
           }}
           router={router} 
           theme={demoTheme} 
