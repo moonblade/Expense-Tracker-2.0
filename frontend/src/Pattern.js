@@ -19,8 +19,10 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  ListItemButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchPatterns, updatePattern } from "./query.svc";
 
 function Pattern() {
@@ -193,7 +195,7 @@ function Pattern() {
 
       {/* Edit/Add Dialog */}
       {selectedPattern && (
-        <Dialog open={isDialogOpen} onClose={handleDialogClose} fullWidth>
+        <Dialog open={isDialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
           <DialogTitle>{selectedPattern.name ? "Edit Pattern" : "Add Pattern"}</DialogTitle>
           <DialogContent>
             <TextField
@@ -229,45 +231,49 @@ function Pattern() {
                 <MenuItem value="reject">Reject</MenuItem>
               </Select>
             </FormControl>
-            <Typography variant="subtitle1" gutterBottom>
-              Metadata
-            </Typography>
-            {Object.entries(selectedPattern.metadata || {}).map(
-              ([key, value], index) => (
-                <Stack
-                  direction="row"
-                  spacing={2}
-                  mb={1}
-                  alignItems="center"
-                  key={index}
-                >
-                  <TextField
-                    label="Key"
-                    value={key}
-                    onChange={(e) => {
-                      const newKey = e.target.value;
-                      handleRemoveMetadata(key);
-                      handleMetadataChange(newKey, value);
-                    }}
-                    fullWidth
-                    margin="dense"
-                  />
-                  <TextField
-                    label="Value"
-                    value={value}
-                    onChange={(e) => handleMetadataChange(key, e.target.value)}
-                    fullWidth
-                    margin="dense"
-                  />
-                  <IconButton onClick={() => handleRemoveMetadata(key)}>
-                    <Typography color="error">X</Typography>
-                  </IconButton>
-                </Stack>
-              )
-            )}
-            <Button onClick={handleAddMetadata} color="primary">
-              Add Metadata
-            </Button>
+           <List disablePadding>
+              {Object.entries(selectedPattern.metadata || {}).map(
+                ([key, value], index) => (
+                  <ListItem
+                    disableGutters
+                    sx={{ paddingRight: 2, py: 0 }}
+                    key={index}
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => handleRemoveMetadata(key)}
+                      >
+                        <DeleteIcon fontSize="small"/>
+                      </IconButton>
+                    }
+                  >
+                    <TextField
+                      label="Key"
+                      value={key}
+                      onChange={(e) => {
+                        const newKey = e.target.value;
+                        handleRemoveMetadata(key);
+                        handleMetadataChange(newKey, value);
+                      }}
+                      fullWidth
+                      margin="dense"
+                    />
+                    <TextField
+                      label="Value"
+                      value={value}
+                      onChange={(e) => handleMetadataChange(key, e.target.value)}
+                      fullWidth
+                      margin="dense"
+                    />
+                  </ListItem>
+                )
+              )}
+            </List> 
+
+            <ListItemButton onClick={handleAddMetadata}>
+              <ListItemText primary="Add Metadata" />
+            </ListItemButton>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
