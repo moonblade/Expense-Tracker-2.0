@@ -20,6 +20,7 @@ import {
   ListItemText,
   Divider,
   ListItemButton,
+  Container,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -136,7 +137,7 @@ function Pattern() {
   };
 
   return (
-    <Box p={3}>
+    <Container maxWidth="md">
       <Typography variant="h5" gutterBottom>
         Patterns
       </Typography>
@@ -156,7 +157,7 @@ function Pattern() {
         />
       </Stack>
 
-      {/* Patterns List */}
+      <Box sx={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
       <List>
         {filteredPatterns.map((pattern, index) => (
           <React.Fragment key={index}>
@@ -192,6 +193,7 @@ function Pattern() {
           </React.Fragment>
         ))}
       </List>
+      </Box>
 
       {/* Edit/Add Dialog */}
       {selectedPattern && (
@@ -283,7 +285,7 @@ function Pattern() {
           </DialogActions>
         </Dialog>
       )}
-    </Box>
+    </Container>
   );
 }
 
