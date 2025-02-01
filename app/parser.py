@@ -51,7 +51,7 @@ def set_matched(email: str, messages: List[Message]):
     logging.info(f"Matching {len(messages)} messages")
     update_message_status(email, messages)
 
-def parseMessages(email: str, messages: List[Message]):
+def parseMessages(email: str, messages: List[Message], backgroundTasks=None):
     rejected = []
     matched = []
     transactions = []
@@ -76,7 +76,11 @@ def parseMessages(email: str, messages: List[Message]):
             if status == MessageStatus.matched:
                 if transaction is not None and pattern and pattern.metadata:
                     transaction = {**transaction, **pattern.metadata, "timestamp": timestamp, "id": message.id}
-                    transaction = Transaction.from_json(transaction)
+                    try:
+                        transaction = Transaction.from_json(transaction)
+                    except ValueError:
+                        logging.exception(f"Error parsing transaction: {transaction} with message {message}")
+                        continue
                 matched.append(message)
                 transactions.append(transaction)
             else:
@@ -85,8 +89,10 @@ def parseMessages(email: str, messages: List[Message]):
             message.status = MessageStatus.unprocessed
     reject(email, rejected)
     set_matched(email, matched)
-    executor.submit(add_transactions, email, transactions)
-    # add_transactions(email, transactions)
+    if backgroundTasks:
+        backgroundTasks.add_task(add_transactions, email, transactions)
+    else:
+        executor.submit(add_transactions, email, transactions)
 
 def parseMessage(message: Message):
     patterns = get_patterns()

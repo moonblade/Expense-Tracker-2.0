@@ -73,6 +73,10 @@ class Transaction(BaseModel):
     type: str = ""
     transactiontype: TransactionType = TransactionType.debit
     category: Category = Category.uncategorized
+    emailChecked: bool = False
+    multipleMails: bool = False
+    message: str = ""
+    reason: str = ""
 
     @staticmethod
     def from_json(transaction: Dict):
