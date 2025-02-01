@@ -25,7 +25,10 @@ import Transactions from "./Transactions"; // Import the Transactions component
 const drawerWidth = 240;
 
 function MainContent() {
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(() => {
+    // Retrieve drawer state from localStorage, default to true if not set
+    return localStorage.getItem("drawerOpen") === "true";
+  });
   const [selectedComponent, setSelectedComponent] = useState(
     () => localStorage.getItem("selectedComponent") || "Senders"
   );
@@ -37,7 +40,11 @@ function MainContent() {
   };
 
   const toggleDrawer = () => {
-    setDrawerOpen((prev) => !prev);
+    setDrawerOpen((prev) => {
+      const newState = !prev;
+      localStorage.setItem("drawerOpen", newState); // Save drawer state to localStorage
+      return newState;
+    });
   };
 
   useEffect(() => {
