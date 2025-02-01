@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -18,9 +18,10 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { fetchSenders, updateSenderStatus } from "./query.svc";
 
 const Senders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [senders, setSenders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState(searchParams.get('search') || '');
 
 
   const navigate = useNavigate();
@@ -54,6 +55,14 @@ const Senders = () => {
       );
     }
   };
+
+  useEffect(() => {
+    if (filter) {
+      setSearchParams({ search: filter });
+    } else {
+      setSearchParams({});
+    }
+  }, [filter, setSearchParams]);
 
   // Filter senders based on search input
   const filteredSenders = useMemo(
