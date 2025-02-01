@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
+  Grid,
   TextField,
   Typography,
-  Card,
-  CardContent,
-  MenuItem,
-  Select,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
+  IconButton,
   FormControl,
   InputLabel,
-  Stack,
-  IconButton,
+  Select,
+  MenuItem,
+  CircularProgress,
+  Divider,
+  useMediaQuery,
+  useTheme,
+  Fab,
 } from "@mui/material";
 import { fetchMessages, processMessages } from "./query.svc";
 import SearchIcon from "@mui/icons-material/Search";
-import SyncIcon from "@mui/icons-material/Sync"; // Use this as a "Process Messages" icon.
+import SyncIcon from "@mui/icons-material/Sync";
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
@@ -25,13 +31,10 @@ function Messages({ onMessageClick }) {
   const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    // Retrieve filter status from local storage
-    const savedFilterStatus = localStorage.getItem(FILTER_STATUS_KEY);
-    if (savedFilterStatus) {
-      setFilterStatus(savedFilterStatus);
-    }
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  useEffect(() => {
     const fetchAndSetMessages = async () => {
       const data = await fetchMessages();
       setMessages(data.messages || []);
@@ -45,14 +48,11 @@ function Messages({ onMessageClick }) {
     };
 
     fetchAndSetMessages();
-    // eslint-disable-next-line
-  }, []);
+  }, [filterStatus]);
 
   useEffect(() => {
-    // Save the filter status to local storage whenever it changes
     localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
     filterMessages(searchQuery, filterStatus);
-    // eslint-disable-next-line
   }, [filterStatus]);
 
   const handleSearch = (event) => {
@@ -92,7 +92,6 @@ function Messages({ onMessageClick }) {
       if (result.status === "success") {
         const refreshedData = await fetchMessages();
         setMessages(refreshedData.messages || []);
-
         let updatedMessages = refreshedData.messages;
         if (filterStatus !== "all") {
           updatedMessages = updatedMessages.filter(
@@ -111,13 +110,14 @@ function Messages({ onMessageClick }) {
   };
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" gutterBottom>
-        Messages
-      </Typography>
+    <Grid container spacing={2} p={3}>
+      <Grid item xs={12}>
+        <Typography variant="h5" gutterBottom>
+          Messages
+        </Typography>
+      </Grid>
 
-      {/* Search and Filter */}
-      <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+      <Grid item xs={12} sm={8}>
         <TextField
           variant="outlined"
           size="small"
@@ -129,8 +129,10 @@ function Messages({ onMessageClick }) {
           }}
           fullWidth
         />
+      </Grid>
 
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+      <Grid item xs={12} sm={4}>
+        <FormControl size="small" fullWidth>
           <InputLabel>Filter Status</InputLabel>
           <Select
             value={filterStatus}
@@ -143,64 +145,57 @@ function Messages({ onMessageClick }) {
             <MenuItem value="unprocessed">Unprocessed</MenuItem>
           </Select>
         </FormControl>
+      </Grid>
 
-        {/* Process Messages Button */}
-        <IconButton
-          onClick={handleProcessMessages}
-          color="primary"
-          disabled={isProcessing}
-          title="Process Messages"
-        >
-          <SyncIcon />
-        </IconButton>
-      </Stack>
+      <Grid item xs={12}>
+        {isProcessing ? (
+          <CircularProgress />
+        ) : (
+          <List>
+            {filteredMessages.map((msg, index) => (
+              <React.Fragment key={index}>
+                <ListItem
+                  sx={{
+                    borderLeft: `4px solid ${
+                      msg.status === "rejected"
+                        ? "red"
+                        : msg.status === "matched"
+                        ? "green"
+                        : "grey"
+                    }`,
+                    cursor: onMessageClick ? "pointer" : "default",
+                  }}
+                  onClick={() => onMessageClick && onMessageClick(msg)}
+                >
+                  <ListItemText
+                    primary={msg.sender}
+                    secondary={msg.sms}
+                    secondaryTypographyProps={{
+                      variant: "body2",
+                      color: "textSecondary",
+                    }}
+                  />
+                </ListItem>
+                <Divider />
+              </React.Fragment>
+            ))}
+          </List>
+        )}
+      </Grid>
 
-      {/* Messages List */}
-      <Box>
-        {filteredMessages.map((msg, index) => (
-          <Card
-            key={index}
-            sx={{
-              marginBottom: 2,
-              borderLeft: `4px solid ${
-                msg.status === "rejected"
-                  ? "red"
-                  : msg.status === "matched"
-                  ? "green"
-                  : "grey"
-              }`,
-              cursor: onMessageClick ? "pointer" : "default",
-            }}
-            onClick={() => onMessageClick && onMessageClick(msg)}
+      {isMobile && (
+        <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+          <Fab
+            color="primary"
+            onClick={handleProcessMessages}
+            disabled={isProcessing}
+            sx={{ position: "fixed", bottom: 16, right: 16 }}
           >
-            <CardContent>
-              <Typography
-                variant="subtitle2"
-                color="textSecondary"
-                gutterBottom
-              >
-                {msg.sender}
-              </Typography>
-              <Typography variant="body1">{msg.sms}</Typography>
-              <Typography
-                variant="caption"
-                color="textSecondary"
-                display="block"
-              >
-                {new Date(msg.timestamp * 1000).toLocaleString("en-IN", {
-                  hour12: true,
-                  hour: "numeric",
-                  minute: "numeric",
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    </Box>
+            <SyncIcon />
+          </Fab>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 
