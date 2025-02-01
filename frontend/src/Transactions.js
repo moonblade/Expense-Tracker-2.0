@@ -184,7 +184,7 @@ function Transactions() {
     name: category,
     value: Math.floor(categoryTotals[category]),
     color: categoryColors[category] || "#000", // Set a color for each category
-  }));
+  })).sort((a, b) => b.value - a.value);;
 
   const handlePieClick = (category) => {
     if (filterCategory === category) {
@@ -384,11 +384,13 @@ function Transactions() {
             label="Filter Category"
           >
             <MenuItem value="all">All</MenuItem>
-            {Object.keys(categoryIcons).map((key) => (
-              <MenuItem key={key} value={key}>
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </MenuItem>
-            ))}
+            {Object.keys(categoryIcons)
+              .sort((a, b) => (categoryTotals[b] || 0) - (categoryTotals[a] || 0)) // Sort by totals
+              .map((key) => (
+                <MenuItem key={key} value={key}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
 
