@@ -91,7 +91,6 @@ function MainContent(props) {
     <AppProvider 
       navigation={NAVIGATION} 
       branding={{
-        logo: <img src="https://static.sheetgo.com/wp-content/uploads/2020/05/icons-expense-tracker.svg" alt="Expense Tracker" />, 
         title: 'Expense Tracker',
         homeUrl: '/senders',
       }}
