@@ -1,4 +1,3 @@
-import { useLocalStorageState } from '@toolpad/core/useLocalStorageState';
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
@@ -9,13 +8,13 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { useDemoRouter } from '@toolpad/core/internal';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Senders from './Senders';
 import Messages from './Messages';
 import Pattern from './Pattern';
 import Transactions from './Transactions';
 import LoginContext from './LoginContext';
-import { AuthenticationContext, SessionContext } from '@toolpad/core/AppProvider'; // Import Authentication and Session Contexts
+import { AuthenticationContext, SessionContext } from '@toolpad/core/AppProvider';
 import SignIn from './SignIn';
 
 const NAVIGATION = [
@@ -63,7 +62,15 @@ const demoTheme = createTheme({
 
 function PageContent({ pathname }) {
   return (
-    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+    <Box
+      sx={{
+        py: 4,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        textAlign: 'left',
+      }}
+    >
       {pathname === '/senders' && <Senders />}
       {pathname === '/patterns' && <Pattern />}
       {pathname === '/messages' && <Messages />}
@@ -76,14 +83,13 @@ PageContent.propTypes = {
   pathname: PropTypes.string.isRequired,
 };
 
-function MainContent(props) {
-  const { window } = props;
-  const { user, login, logout } = React.useContext(LoginContext); // Use LoginContext
-  const [storedPage, setStoredPage] = useLocalStorageState('page', '/transactions');
-  const router = useDemoRouter(storedPage);
-  const demoWindow = window !== undefined ? window() : undefined;
+function MainContent() {
+  const { user, logout } = React.useContext(LoginContext);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Set up session and authentication context
+  // We now use the location and navigate hooks from react-router.
+  // If you previously relied on local storage for page persistence, react-router's URL will handle that.
   const [session, setSession] = React.useState(user);
 
   const authentication = React.useMemo(() => {
@@ -93,44 +99,44 @@ function MainContent(props) {
         logout();
       },
     };
-  }, [user, logout]);
+  }, [logout]);
 
   useEffect(() => {
     setSession({
-      "user": {
-        "name": user?.displayName,
-        "email": user?.email,
-        "image": user?.photoURL,
-      }
+      user: {
+        name: user?.displayName,
+        email: user?.email,
+        image: user?.photoURL,
+      },
     });
   }, [user]);
-
-  useEffect(() => {
-    // Store the page in local storage when pathname changes
-    setStoredPage(router.pathname);
-  }, [router.pathname, setStoredPage]);
 
   if (!user) {
     return <SignIn />;
   }
 
+  // Create a router-like object from react-router's hooks.
+  const router = { 
+    pathname: location.pathname, 
+    navigate: (path) => navigate(path) 
+  };
+
   return (
-    <AuthenticationContext.Provider value={authentication}> {/* Provide AuthenticationContext */}
-      <SessionContext.Provider value={session}> {/* Provide SessionContext */}
-        <AppProvider 
-          navigation={NAVIGATION} 
+    <AuthenticationContext.Provider value={authentication}>
+      <SessionContext.Provider value={session}>
+        <AppProvider
+          navigation={NAVIGATION}
           branding={{
             title: 'Expense Tracker',
             homeUrl: '/transactions',
           }}
-          router={router} 
-          theme={demoTheme} 
-          window={demoWindow}
+          router={router} // Passing our react-router based router object
+          theme={demoTheme}
           session={session}
           authentication={authentication}
         >
           <DashboardLayout>
-            <PageContent pathname={router.pathname} />
+            <PageContent pathname={location.pathname} />
           </DashboardLayout>
         </AppProvider>
       </SessionContext.Provider>
@@ -138,9 +144,4 @@ function MainContent(props) {
   );
 }
 
-MainContent.propTypes = {
-  window: PropTypes.func,
-};
-
 export default MainContent;
-
