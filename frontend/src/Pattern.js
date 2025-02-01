@@ -146,7 +146,6 @@ function Pattern() {
               button
               onClick={() => handleCardClick(pattern)}
               sx={{
-                marginBottom: 1,
                 borderLeft: `4px solid ${
                   pattern.action === "approve" ? "green" : "red"
                 }`,
