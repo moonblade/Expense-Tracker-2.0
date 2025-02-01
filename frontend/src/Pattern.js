@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -23,11 +24,13 @@ import SearchIcon from "@mui/icons-material/Search";
 import { fetchPatterns, updatePattern } from "./query.svc";
 
 function Pattern() {
+  const [searchParams] = useSearchParams();
   const [patterns, setPatterns] = useState([]);
   const [filteredPatterns, setFilteredPatterns] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const id = searchParams.get("id", null);
 
   const fetchAndSetPatterns = async () => {
     try {
@@ -42,6 +45,18 @@ function Pattern() {
   useEffect(() => {
     fetchAndSetPatterns();
   }, []);
+
+  // If the 'id' parameter is available in the URL, automatically select that pattern
+  useEffect(() => {
+    console.log(patterns)
+    console.log(id)
+    if (id) {
+      const pattern = patterns.find((pattern) => pattern.id === id);
+      if (pattern) {
+        handleCardClick(pattern);
+      }
+    }
+  }, [id, patterns]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -63,17 +78,6 @@ function Pattern() {
     setSelectedPattern({ ...pattern }); // Clone the pattern to avoid direct mutation
     setIsDialogOpen(true);
   };
-
-  // const handleAddPattern = (sender, message) => {
-  //   setSelectedPattern({
-  //     sender,
-  //     pattern: message,
-  //     name: "",
-  //     action: "approve",
-  //     metadata: {},
-  //   });
-  //   setIsDialogOpen(true);
-  // };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
@@ -143,7 +147,6 @@ function Pattern() {
         {filteredPatterns.map((pattern, index) => (
           <React.Fragment key={index}>
             <ListItem
-              button
               onClick={() => handleCardClick(pattern)}
               sx={{
                 borderLeft: `4px solid ${
@@ -152,6 +155,7 @@ function Pattern() {
               }}
             >
               <ListItemText
+                disableTypography
                 primary={pattern.name}
                 secondary={
                   <>
