@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -21,6 +22,9 @@ const Senders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
+
+  const navigate = useNavigate();
+
   // Fetch senders data when the component mounts
   useEffect(() => {
     const loadSenders = async () => {
@@ -31,6 +35,13 @@ const Senders = () => {
 
     loadSenders();
   }, []);
+
+  // Modified navigation function to accept a sender name as parameter
+  const handleNavigateToMessages = (senderName) => {
+    // Pass the sender name as a query parameter (adjust as needed for your routing)
+    console.log("Navigating to messages for sender:", senderName);
+    navigate(`/messages?sender=${encodeURIComponent(senderName)}`);
+  };
 
   // Handle status change for a sender
   const handleStatusChange = async (name, newStatus) => {
@@ -113,12 +124,14 @@ const Senders = () => {
                   groupedSenders[status].map((sender) => (
                     <React.Fragment key={sender.name}>
                       <ListItem
+                        onClick={() => handleNavigateToMessages(sender.name)}
                         secondaryAction={
                           <Box>
                             <IconButton
-                              onClick={() =>
-                                handleStatusChange(sender.name, "approved")
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(sender.name, "approved");
+                              }}
                               color="success"
                               disabled={sender.status === "approved"}
                               size="large"
@@ -126,9 +139,10 @@ const Senders = () => {
                               <CheckIcon />
                             </IconButton>
                             <IconButton
-                              onClick={() =>
-                                handleStatusChange(sender.name, "rejected")
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusChange(sender.name, "rejected");
+                              }}
                               color="error"
                               disabled={sender.status === "rejected"}
                               size="large"
