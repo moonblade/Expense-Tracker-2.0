@@ -4,6 +4,9 @@ from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
 from functools import cache
+import logging
+
+from utils import measure_time
 
 db = firestore.client()
 
@@ -141,6 +144,7 @@ def get_transactions(email, days_ago_start=30):
 
     return transactions
 
+@cache
 def get_transaction(email, transaction_id):
     transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
     transaction = transaction_ref.get()
@@ -148,9 +152,11 @@ def get_transaction(email, transaction_id):
         return Transaction(**transaction.to_dict())
     return None
 
+@measure_time
 def update_transaction(email, transaction_id, transaction):
     transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
     transaction_ref.set(transaction.dict(), merge=True)
+    get_transaction.cache_clear()
 
 @cache
 def get_merchants():

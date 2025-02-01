@@ -2,7 +2,7 @@ import os
 from auth import validate_token
 from typing import List
 from models import CategorizeTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
-from fastapi import FastAPI, Security, HTTPException
+from fastapi import FastAPI, Security, HTTPException, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
 from db import get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
@@ -70,9 +70,9 @@ def ui() -> str:
     return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
 
 @app.post("/processmessages")
-def process_messages(email = Security(getEmail)):
+def process_messages(email = Security(getEmail), background_tasks: BackgroundTasks = None):
     messages = read_messages(email)
-    parseMessages(email, messages)
+    parseMessages(email, messages, background_tasks)
     return {"status": "success", "message": "Messages processed successfully"}
 
 @app.get("/messages")
