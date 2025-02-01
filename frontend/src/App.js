@@ -4,13 +4,16 @@ import {
 } from "@mui/material";
 import { LoginProvider } from "./LoginContext";
 import MainContent from "./MainContent";
+import { BrowserRouter } from 'react-router-dom';
 
 function App() {
   return (
     <>
       <CssBaseline />
       <LoginProvider>
-        <MainContent />
+        <BrowserRouter>
+          <MainContent />
+        </BrowserRouter>
       </LoginProvider>
     </>
   );
