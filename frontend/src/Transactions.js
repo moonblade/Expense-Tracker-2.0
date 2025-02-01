@@ -44,6 +44,13 @@ import {
   processMessages,
   unignoreTransaction,
 } from "./query.svc";
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  Tooltip, 
+  ResponsiveContainer 
+} from "recharts";
 
 const categoryIcons = {
   uncategorized: <UncategorizedIcon />,
@@ -57,6 +64,20 @@ const categoryIcons = {
   shopping: <ShoppingIcon />,
   investment: <InvestmentIcon />,
   entertainment: <EntertainmentIcon />,
+};
+
+const categoryColors = {
+  uncategorized: "#f0f0f0",
+  travel: "#ff6666",
+  family: "#66ff66",
+  food: "#ffcc00",
+  friends: "#66ccff",
+  health: "#ff33cc",
+  home: "#66ffcc",
+  charity: "#ff9933",
+  shopping: "#ff6699",
+  investment: "#33ccff",
+  entertainment: "#cc33ff",
 };
 
 const filterTypes = ["credit", "debit"];
@@ -151,6 +172,27 @@ function Transactions() {
     setReasonDialogOpen(true);
     handleMenuClose();
   };
+
+  const categoryTotals = transactions.reduce((acc, transaction) => {
+    if (transaction.category && !transaction.ignore && transaction.transactiontype === "debit") {
+      acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+    }
+    return acc;
+  }, {});
+
+  const pieData = Object.keys(categoryTotals).map((category) => ({
+    name: category,
+    value: Math.floor(categoryTotals[category]),
+    color: categoryColors[category] || "#000", // Set a color for each category
+  }));
+
+  const handlePieClick = (category) => {
+    if (filterCategory === category) {
+      setFilterCategory("all");
+    } else {
+      setFilterCategory(category);
+    }
+  }
 
   const handleCategorySelect = async (category) => {
     if (!selectedTransaction) {
@@ -300,6 +342,26 @@ function Transactions() {
       <Typography variant="h6" color="textSecondary" mb={2}>
         Total Spent: ₹{total.toLocaleString("en-IN")}
       </Typography>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={pieData}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            labelLine={false}
+            onClick={({ name }) => handlePieClick(name)} // Filter by category on click
+          >
+            {pieData.map((entry, index) => (
+              <Cell key={index} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
 
       <Stack direction="row" spacing={2} alignItems="center" mb={2}>
         <TextField
