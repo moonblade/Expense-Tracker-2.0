@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
-  Grid,
+  Box,
+  Container,
   TextField,
   Typography,
   List,
@@ -103,44 +104,38 @@ function Messages() {
   };
 
   return (
-    <Grid container spacing={2} p={3}>
-      <Grid item xs={12}>
-        <Typography variant="h5" gutterBottom>
-          Messages
-        </Typography>
-      </Grid>
+    <Container maxWidth="md" >
+      <Typography variant="h5" gutterBottom>
+        Messages
+      </Typography>
 
-      <Grid item xs={12} sm={8}>
+      <FormControl size="small" fullWidth sx={{mb:2}}>
         <TextField
           variant="outlined"
           size="small"
           placeholder="Search by sender or content"
           value={searchQuery}
           onChange={handleSearch}
-          InputProps={{
-            endAdornment: <SearchIcon />,
-          }}
           fullWidth
         />
-      </Grid>
+      </FormControl>
 
-      <Grid item xs={12} sm={4}>
-        <FormControl size="small" fullWidth>
-          <InputLabel>Filter Status</InputLabel>
-          <Select
-            value={filterStatus}
-            onChange={handleFilterChange}
-            label="Filter Status"
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="matched">Matched</MenuItem>
-            <MenuItem value="rejected">Rejected</MenuItem>
-            <MenuItem value="unprocessed">Unprocessed</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
+      <FormControl size="small" fullWidth sx={{mb:2}}>
+        <InputLabel>Filter Status</InputLabel>
+        <Select
+          value={filterStatus}
+          onChange={handleFilterChange}
+          label="Filter Status"
+        >
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="matched">Matched</MenuItem>
+          <MenuItem value="rejected">Rejected</MenuItem>
+          <MenuItem value="unprocessed">Unprocessed</MenuItem>
+        </Select>
+      </FormControl>
 
-      <Grid item xs={12}>
+
+      <Box sx={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
         {isProcessing ? (
           <CircularProgress />
         ) : (
@@ -189,9 +184,8 @@ function Messages() {
             ))}
           </List>
         )}
-      </Grid>
+        </Box>
 
-      <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
         <Fab
           color="primary"
           onClick={handleProcessMessages}
@@ -200,8 +194,7 @@ function Messages() {
         >
           <SyncIcon />
         </Fab>
-      </Grid>
-    </Grid>
+    </Container>
   );
 }
 
