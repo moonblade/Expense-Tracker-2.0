@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   IconButton,
-  Stack,
   TextField,
   Dialog,
   DialogTitle,
@@ -22,7 +21,6 @@ import {
   ListItemButton,
   Container,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchPatterns, updatePattern } from "./query.svc";
 
@@ -137,25 +135,20 @@ function Pattern() {
   };
 
   return (
-    <Container maxWidth="md">
+    <Container>
       <Typography variant="h5" gutterBottom>
         Patterns
       </Typography>
 
       {/* Search */}
-      <Stack direction="row" spacing={2} alignItems="center" mb={2}>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Search by name, sender, or pattern"
-          value={searchQuery}
-          onChange={handleSearch}
-          InputProps={{
-            endAdornment: <SearchIcon />,
-          }}
-          fullWidth
-        />
-      </Stack>
+      <TextField
+        variant="outlined"
+        size="small"
+        placeholder="Search by name, sender, or pattern"
+        value={searchQuery}
+        onChange={handleSearch}
+        fullWidth
+      />
 
       <Box sx={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
       <List>
