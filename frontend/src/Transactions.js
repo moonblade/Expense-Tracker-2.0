@@ -15,6 +15,8 @@ import {
   DialogTitle,
   Button,
   Stack,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
@@ -72,6 +74,11 @@ function Transactions() {
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [showIgnored, setShowIgnored] = useState(false);
+
+  const handleShowIgnoredChange = (event) => {
+    setShowIgnored(event.target.checked);
+  };
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -174,11 +181,12 @@ function Transactions() {
         transaction.account.toLowerCase().includes(searchQuery);
       const categoryMatch = filterCategory === "all" || transaction.category === filterCategory;
       const typeMatch = filterType === "all" || transaction.transactiontype === filterType;
-      return queryMatch && categoryMatch && typeMatch;
+      const ignoreMatch = showIgnored || !transaction.ignore;
+      return queryMatch && categoryMatch && typeMatch && ignoreMatch;
     });
 
     setFilteredTransactions(filtered);
-  }, [transactions, searchQuery, filterCategory, filterType]);
+  }, [transactions, searchQuery, filterCategory, filterType, showIgnored]);
 
   useEffect(() => {
     const total = filteredTransactions.reduce((sum, transaction) => {
@@ -337,6 +345,17 @@ function Transactions() {
             ))}
           </Select>
         </FormControl>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showIgnored}
+              onChange={handleShowIgnoredChange}
+              color="primary"
+            />
+          }
+          label="Ignore"
+        />
 
         <IconButton
           onClick={handleRefreshTransactions}
