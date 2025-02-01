@@ -87,7 +87,7 @@ const Senders = () => {
   }, [filteredSenders]);
 
   return (
-    <Container maxWidth="md" sx={{ py: 2 }}>
+    <Container maxWidth="md" >
       <Typography variant="h5" component="h2" gutterBottom>
         Senders
       </Typography>
