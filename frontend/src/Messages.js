@@ -164,7 +164,14 @@ function Messages() {
                     secondary={
                       <>
                         <Typography variant="caption" color="textSecondary">
-                          {new Date(msg.timestamp).toLocaleString()}
+                          {new Date(msg.timestamp * 1000).toLocaleString("en-IN", {
+                            hour12: true,
+                            hour: "numeric",
+                            minute: "numeric",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
                         </Typography>
                         <br />
                         {msg.sms}
