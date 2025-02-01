@@ -1,149 +1,114 @@
-import React, { useContext, useState, useEffect } from "react";
-import {
-  Box,
-  Toolbar,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Button,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu"; // Hamburger icon
-import SendIcon from "@mui/icons-material/Send";
-import MessageIcon from "@mui/icons-material/Message";
-import BuildIcon from "@mui/icons-material/Build"; // New icon for Pattern
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn"; // Icon for Transactions
-import Senders from "./Senders";
-import Messages from "./Messages"; // Import the Messages component
-import LoginContext from "./LoginContext";
-import Pattern from "./Pattern";
-import Transactions from "./Transactions"; // Import the Transactions component
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import Box from '@mui/material/Box';
+import { createTheme } from '@mui/material/styles';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import SettingsIcon from '@mui/icons-material/Settings';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import { AppProvider } from '@toolpad/core/AppProvider';
+import { DashboardLayout } from '@toolpad/core/DashboardLayout';
+import { useDemoRouter } from '@toolpad/core/internal';
+import Senders from './Senders';
+import Messages from './Messages';
+import Pattern from './Pattern';
+import Transactions from './Transactions';
+import LoginContext from './LoginContext';
 
-const drawerWidth = 240;
+const NAVIGATION = [
+  {
+    kind: 'header',
+    title: 'Pages',
+  },
+  {
+    segment: 'senders',
+    title: 'Senders',
+    icon: <AccountBalanceWalletIcon />, 
+  },
+  {
+    segment: 'messages',
+    title: 'Messages',
+    icon: <ReceiptLongIcon />,
+  },
+  {
+    segment: 'patterns',
+    title: 'Patterns',
+    icon: <SettingsIcon />,
+  },
+  {
+    segment: 'transactions',
+    title: 'Transactions',
+    icon: <MonetizationOnIcon />,
+  },
+];
 
-function MainContent() {
-  const [drawerOpen, setDrawerOpen] = useState(() => {
-    // Retrieve drawer state from localStorage, default to true if not set
-    return localStorage.getItem("drawerOpen") === "true";
-  });
-  const [selectedComponent, setSelectedComponent] = useState(
-    () => localStorage.getItem("selectedComponent") || "Senders"
+const demoTheme = createTheme({
+  cssVariables: {
+    colorSchemeSelector: 'data-toolpad-color-scheme',
+  },
+  colorSchemes: { light: true, dark: true },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 600,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
+});
+
+function PageContent({ pathname }) {
+  return (
+    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      {pathname === '/senders' && <Senders />}
+      {pathname === '/patterns' && <Pattern />}
+      {pathname === '/messages' && <Messages />}
+      {pathname === '/transactions' && <Transactions />}
+    </Box>
   );
-  const { user, login } = useContext(LoginContext);
+}
 
-  const handleNavigation = (component) => {
-    setSelectedComponent(component);
-    localStorage.setItem("selectedComponent", component); // Save to localStorage
-  };
+PageContent.propTypes = {
+  pathname: PropTypes.string.isRequired,
+};
 
-  const toggleDrawer = () => {
-    setDrawerOpen((prev) => {
-      const newState = !prev;
-      localStorage.setItem("drawerOpen", newState); // Save drawer state to localStorage
-      return newState;
-    });
-  };
-
-  useEffect(() => {
-    const savedComponent = localStorage.getItem("selectedComponent");
-    if (savedComponent) {
-      setSelectedComponent(savedComponent);
-    }
-  }, []);
+function MainContent(props) {
+  const { window } = props;
+  const { user, login } = React.useContext(LoginContext);
+  const router = useDemoRouter('/senders');
+  const demoWindow = window !== undefined ? window() : undefined;
 
   if (!user) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-        width="100vw"
-      >
-        <Button variant="contained" color="primary" onClick={login}>
-          Login
-        </Button>
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh" width="100vw">
+        <button onClick={login}>Login</button>
       </Box>
     );
   }
 
   return (
-    <>
-      <Drawer
-        variant="permanent"
-        open={drawerOpen}
-        sx={{
-          width: drawerOpen ? drawerWidth : 56,
-          flexShrink: 0,
-          whiteSpace: "nowrap",
-          boxSizing: "border-box",
-          "& .MuiDrawer-paper": {
-            width: drawerOpen ? drawerWidth : 56,
-            overflowX: "hidden",
-            transition: (theme) =>
-              theme.transitions.create("width", {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-              }),
-            ...(drawerOpen
-              ? {}
-              : {
-                  transition: (theme) =>
-                    theme.transitions.create("width", {
-                      easing: theme.transitions.easing.sharp,
-                      duration: theme.transitions.duration.leavingScreen,
-                    }),
-                }),
-          },
-        }}
-      >
-        <Toolbar />
-        <IconButton onClick={toggleDrawer}>
-          <MenuIcon />
-        </IconButton>
-        <List>
-          {/* Navigation Items */}
-          {[
-            { name: "Senders", icon: SendIcon },
-            { name: "Messages", icon: MessageIcon },
-            { name: "Patterns", icon: BuildIcon },
-            { name: "Transactions", icon: MonetizationOnIcon }, // New Transactions item
-          ].map((item) => (
-            <ListItem disablePadding key={item.name}>
-              <ListItemButton onClick={() => handleNavigation(item.name)}>
-                <ListItemIcon>{item.icon ? <item.icon /> : null}</ListItemIcon>
-                {drawerOpen && <ListItemText primary={item.name} />}
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          transition: (theme) =>
-            theme.transitions.create("margin-left", {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-        }}
-      >
-        <Toolbar />
-        {selectedComponent === "Senders" && <Senders />}
-        {selectedComponent === "Patterns" && <Pattern />}
-        {selectedComponent === "Messages" && <Messages />}
-        {selectedComponent === "Transactions" && <Transactions />} {/* New Transactions page */}
-      </Box>
-    </>
+    <AppProvider 
+      navigation={NAVIGATION} 
+      branding={{
+        logo: <img src="https://static.sheetgo.com/wp-content/uploads/2020/05/icons-expense-tracker.svg" alt="Expense Tracker" />, 
+        title: 'Expense Tracker',
+        homeUrl: '/senders',
+      }}
+      router={router} 
+      theme={demoTheme} 
+      window={demoWindow}
+    >
+      <DashboardLayout>
+        <PageContent pathname={router.pathname} />
+      </DashboardLayout>
+    </AppProvider>
   );
 }
+
+MainContent.propTypes = {
+  window: PropTypes.func,
+};
 
 export default MainContent;
 
