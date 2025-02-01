@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchMessages, processMessages } from "./query.svc";
-import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
@@ -34,11 +33,14 @@ function Messages() {
   const handleMessageClick = (msg) => {
     if (msg.matchedPattern && msg.matchedPattern !== "") {
       // If matchedPattern is non-empty, navigate to /patterns with id as matchedPattern
-      navigate(`/patterns?id=${msg.matchedPattern}`);
+      navigate(`/patterns?id=${encodeURIComponent(msg.matchedPattern)}`);
     } else if (msg.status !== "unprocessed") {
       // If status is not "unprocessed", navigate to /senders page with sender's last part
       const senderId = msg.sender.split("-").pop(); // get the last part after the last dash
       navigate(`/senders?search=${senderId}`);
+    } else if (msg.status === "unprocessed") {
+      // If status is "unprocessed", navigate to /patterns page
+      navigate(`/patterns?sender=${encodeURIComponent(msg.sender)}&content=${encodeURIComponent(msg.sms)}`);
     }
   };
 

@@ -31,6 +31,8 @@ function Pattern() {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const id = searchParams.get("id", null);
+  const sender = searchParams.get("sender", null);
+  const content = searchParams.get("content", null);
 
   const fetchAndSetPatterns = async () => {
     try {
@@ -48,8 +50,6 @@ function Pattern() {
 
   // If the 'id' parameter is available in the URL, automatically select that pattern
   useEffect(() => {
-    console.log(patterns)
-    console.log(id)
     if (id) {
       const pattern = patterns.find((pattern) => pattern.id === id);
       if (pattern) {
@@ -57,6 +57,18 @@ function Pattern() {
       }
     }
   }, [id, patterns]);
+
+  useEffect(() => {
+    if (sender && content) {
+      setSelectedPattern({
+        sender,
+        pattern: content,
+        action: "approve",
+        metadata: {},
+      });
+      setIsDialogOpen(true);
+    }
+  }, [sender, content]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
