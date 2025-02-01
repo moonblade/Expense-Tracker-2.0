@@ -369,7 +369,7 @@ function Transactions() {
 
       <Box sx={{ flex: 1 }}>
         <DataGrid
-          columnVisibilityModel={{id: false, ignore: false}}
+          columnVisibilityModel={{id: false, ignore: false, transactiontype: filterType == "all"}}
           rows={filteredTransactions}
           columns={columns}
           pageSize={10}
