@@ -111,16 +111,19 @@ const Senders = () => {
           <List>
             {groupOrder.map((status) => (
               <React.Fragment key={status}>
-                <ListSubheader
-                  sx={{
-                    backgroundColor: "background.paper",
-                    fontWeight: "bold",
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </ListSubheader>
-                {groupedSenders[status] && groupedSenders[status].length > 0 ? (
+                {
+                  groupedSenders[status].length > 0 && (
+                  <ListSubheader
+                    sx={{
+                      backgroundColor: "background.paper",
+                      fontWeight: "bold",
+                      fontSize: "1.1rem",
+                    }}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </ListSubheader>)
+                }
+                {groupedSenders[status] && groupedSenders[status].length > 0 && (
                   groupedSenders[status].map((sender) => (
                     <React.Fragment key={sender.name}>
                       <ListItem
@@ -167,10 +170,6 @@ const Senders = () => {
                       <Divider component="li" />
                     </React.Fragment>
                   ))
-                ) : (
-                  <ListItem>
-                    <ListItemText primary="No senders in this category." />
-                  </ListItem>
                 )}
               </React.Fragment>
             ))}
