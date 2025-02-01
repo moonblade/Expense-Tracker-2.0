@@ -14,6 +14,7 @@ import {
   Divider,
   Fab,
 } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 import { fetchMessages, processMessages } from "./query.svc";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
@@ -21,37 +22,31 @@ import SyncIcon from "@mui/icons-material/Sync";
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
 function Messages({ onMessageClick }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    const fetchAndSetMessages = async () => {
-      const data = await fetchMessages();
-      setMessages(data.messages || []);
-      let updatedMessages = data.messages;
-      if (filterStatus !== "all") {
-        updatedMessages = updatedMessages.filter(
-          (msg) => msg.status.toLowerCase() === filterStatus
-        );
-      }
-      setFilteredMessages(updatedMessages || []);
-    };
+  const fetchAndSetMessages = async () => {
+    const data = await fetchMessages();
+    setMessages(data.messages || []);
+  };
 
+  useEffect(() => {
     fetchAndSetMessages();
   }, [filterStatus]);
 
   useEffect(() => {
     localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
     filterMessages(searchQuery, filterStatus);
-  }, [filterStatus]);
+  }, [filterStatus, searchQuery, messages]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-    filterMessages(query, filterStatus);
+    setSearchParams({ search: query });
   };
 
   const handleFilterChange = (event) => {
@@ -70,8 +65,8 @@ function Messages({ onMessageClick }) {
     if (query) {
       updatedMessages = updatedMessages.filter(
         (msg) =>
-          msg.sender.toLowerCase().includes(query) ||
-          msg.sms.toLowerCase().includes(query)
+          msg.sender.toLowerCase().includes(query.toLowerCase()) ||
+          msg.sms.toLowerCase().includes(query.toLowerCase())
       );
     }
 
@@ -83,15 +78,7 @@ function Messages({ onMessageClick }) {
     try {
       const result = await processMessages();
       if (result.status === "success") {
-        const refreshedData = await fetchMessages();
-        setMessages(refreshedData.messages || []);
-        let updatedMessages = refreshedData.messages;
-        if (filterStatus !== "all") {
-          updatedMessages = updatedMessages.filter(
-            (msg) => msg.status.toLowerCase() === filterStatus
-          );
-        }
-        setFilteredMessages(updatedMessages || []);
+        fetchAndSetMessages();
       } else {
         console.error("Failed to process messages:", result.error);
       }
@@ -160,9 +147,17 @@ function Messages({ onMessageClick }) {
                   }}
                   onClick={() => onMessageClick && onMessageClick(msg)}
                 >
-                  <ListItemText
+                 <ListItemText
                     primary={msg.sender}
-                    secondary={msg.sms}
+                    secondary={
+                      <>
+                        <Typography variant="caption" color="textSecondary">
+                          {new Date(msg.timestamp).toLocaleString()}
+                        </Typography>
+                        <br />
+                        {msg.sms}
+                      </>
+                    }
                     secondaryTypographyProps={{
                       variant: "body2",
                       color: "textSecondary",
