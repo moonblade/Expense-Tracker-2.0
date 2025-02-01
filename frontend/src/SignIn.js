@@ -12,7 +12,7 @@ const providers = [
 // preview-end
 
 export default function SignIn() {
-  const { user, login, logout } = React.useContext(LoginContext); // Use LoginContext
+  const { login } = React.useContext(LoginContext); // Use LoginContext
   const theme = useTheme();
   return (
     // preview-start

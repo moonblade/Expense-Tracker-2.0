@@ -74,7 +74,7 @@ const Senders = () => {
   );
 
   // Group senders by status in the order: unprocessed, approved, rejected
-  const groupOrder = ["unprocessed", "approved", "rejected"];
+  const groupOrder = useMemo(()=> { return ["unprocessed", "approved", "rejected"]; }, [])
   const groupedSenders = useMemo(() => {
     const groups = {};
     groupOrder.forEach((status) => {
@@ -93,7 +93,7 @@ const Senders = () => {
       groups[status].sort((a, b) => a.name.localeCompare(b.name));
     });
     return groups;
-  }, [filteredSenders]);
+  }, [filteredSenders, groupOrder]);
 
   return (
     <Container maxWidth="md" >
