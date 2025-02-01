@@ -32,7 +32,6 @@ function Messages({ onMessageClick }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const fetchAndSetMessages = async () => {
@@ -183,18 +182,16 @@ function Messages({ onMessageClick }) {
         )}
       </Grid>
 
-      {isMobile && (
-        <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
-          <Fab
-            color="primary"
-            onClick={handleProcessMessages}
-            disabled={isProcessing}
-            sx={{ position: "fixed", bottom: 16, right: 16 }}
-          >
-            <SyncIcon />
-          </Fab>
-        </Grid>
-      )}
+      <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+        <Fab
+          color="primary"
+          onClick={handleProcessMessages}
+          disabled={isProcessing}
+          sx={{ position: "fixed", bottom: 16, right: 16 }}
+        >
+          <SyncIcon />
+        </Fab>
+      </Grid>
     </Grid>
   );
 }
