@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
+  Container,
   Typography,
   TextField,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
   IconButton,
-  Grid,
-  Paper,
   CircularProgress,
+  Divider,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -17,7 +21,7 @@ const Senders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
-  // Fetch senders data
+  // Fetch senders data when the component mounts
   useEffect(() => {
     const loadSenders = async () => {
       const data = await fetchSenders();
@@ -28,108 +32,138 @@ const Senders = () => {
     loadSenders();
   }, []);
 
-  const handleStatusChange = async (name, status) => {
-    const success = await updateSenderStatus(name, status);
+  // Handle status change for a sender
+  const handleStatusChange = async (name, newStatus) => {
+    const success = await updateSenderStatus(name, newStatus);
     if (success) {
       setSenders((prevSenders) =>
         prevSenders.map((sender) =>
-          sender.name === name ? { ...sender, status } : sender
+          sender.name === name ? { ...sender, status: newStatus } : sender
         )
       );
     }
   };
 
   // Filter senders based on search input
-  const filteredSenders = senders.filter((sender) =>
-    sender.name.toLowerCase().includes(filter.toLowerCase())
+  const filteredSenders = useMemo(
+    () =>
+      senders.filter((sender) =>
+        sender.name.toLowerCase().includes(filter.toLowerCase())
+      ),
+    [senders, filter]
   );
 
-  // Sort senders: Grey first (unprocessed), then Green (approved), Red (rejected)
-  const sortedSenders = filteredSenders.sort((a, b) => {
-    const order = ["unprocessed", "approved", "rejected"];
-    return order.indexOf(a.status) - order.indexOf(b.status) || a.name.localeCompare(b.name);
-  });
+  // Group senders by status in the order: unprocessed, approved, rejected
+  const groupOrder = ["unprocessed", "approved", "rejected"];
+  const groupedSenders = useMemo(() => {
+    const groups = {};
+    groupOrder.forEach((status) => {
+      groups[status] = [];
+    });
+    filteredSenders.forEach((sender) => {
+      const { status } = sender;
+      if (groups[status]) {
+        groups[status].push(sender);
+      } else {
+        groups[status] = [sender];
+      }
+    });
+    // Optionally, sort each group alphabetically by name
+    groupOrder.forEach((status) => {
+      groups[status].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    return groups;
+  }, [filteredSenders]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Container maxWidth="md" sx={{ py: 2 }}>
       <Typography variant="h5" component="h2" gutterBottom>
         Senders
       </Typography>
-      
+
       {/* Search bar */}
       <TextField
         label="Search Senders"
         variant="outlined"
         fullWidth
-        onChange={(e) => setFilter(e.target.value)}
         margin="normal"
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
       />
 
-      {/* Add space after the search bar */}
-      <Box mb={2} />
-
-      {/* Sender List */}
-      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+      <Box sx={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" height="100%">
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={2}>
-            {sortedSenders.map((sender) => (
-              <Grid item xs={12} sm={6} md={4} key={sender.name}>
-                <Paper
-                  elevation={3}
+          <List>
+            {groupOrder.map((status) => (
+              <React.Fragment key={status}>
+                <ListSubheader
                   sx={{
-                    backgroundColor:
-                      sender.status === "unprocessed"
-                        ? "#f0f0f0"
-                        : sender.status === "approved"
-                        ? "lightgreen"
-                        : "lightcoral",
-                    p: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderRadius: 2,
+                    backgroundColor: "background.paper",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
                   }}
                 >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color:
-                        sender.status === "unprocessed"
-                          ? "textPrimary"
-                          : sender.status === "approved"
-                          ? "green"
-                          : "red",
-                    }}
-                  >
-                    {sender.name}
-                  </Typography>
-
-                  {/* Action Buttons */}
-                  <Box>
-                    <IconButton
-                      onClick={() => handleStatusChange(sender.name, "approved")}
-                      color="success"
-                    >
-                      <CheckIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleStatusChange(sender.name, "rejected")}
-                      color="error"
-                    >
-                      <CancelIcon />
-                    </IconButton>
-                  </Box>
-                </Paper>
-              </Grid>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </ListSubheader>
+                {groupedSenders[status] && groupedSenders[status].length > 0 ? (
+                  groupedSenders[status].map((sender) => (
+                    <React.Fragment key={sender.name}>
+                      <ListItem
+                        secondaryAction={
+                          <Box>
+                            <IconButton
+                              onClick={() =>
+                                handleStatusChange(sender.name, "approved")
+                              }
+                              color="success"
+                              disabled={sender.status === "approved"}
+                              size="large"
+                            >
+                              <CheckIcon />
+                            </IconButton>
+                            <IconButton
+                              onClick={() =>
+                                handleStatusChange(sender.name, "rejected")
+                              }
+                              color="error"
+                              disabled={sender.status === "rejected"}
+                              size="large"
+                            >
+                              <CancelIcon />
+                            </IconButton>
+                          </Box>
+                        }
+                      >
+                        <ListItemText
+                          primary={sender.name}
+                          primaryTypographyProps={{
+                            color:
+                              sender.status === "approved"
+                                ? "green"
+                                : sender.status === "rejected"
+                                ? "red"
+                                : "textPrimary",
+                          }}
+                        />
+                      </ListItem>
+                      <Divider component="li" />
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText primary="No senders in this category." />
+                  </ListItem>
+                )}
+              </React.Fragment>
             ))}
-          </Grid>
+          </List>
         )}
       </Box>
-    </Box>
+    </Container>
   );
 };
 

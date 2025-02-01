@@ -63,7 +63,7 @@ const demoTheme = createTheme({
 
 function PageContent({ pathname }) {
   return (
-    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+    <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
       {pathname === '/senders' && <Senders />}
       {pathname === '/patterns' && <Pattern />}
       {pathname === '/messages' && <Messages />}
