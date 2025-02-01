@@ -6,16 +6,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListSubheader,
-  IconButton,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   CircularProgress,
   Divider,
-  useMediaQuery,
-  useTheme,
   Fab,
 } from "@mui/material";
 import { fetchMessages, processMessages } from "./query.svc";
@@ -30,8 +26,6 @@ function Messages({ onMessageClick }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const theme = useTheme();
 
   useEffect(() => {
     const fetchAndSetMessages = async () => {

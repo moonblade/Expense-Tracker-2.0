@@ -102,6 +102,12 @@ function MainContent() {
   }, [logout]);
 
   useEffect(() => {
+    if (!location.pathname || location.pathname === '/') {
+      navigate('/transactions');
+    }
+  }, [location, navigate]);
+
+  useEffect(() => {
     setSession({
       user: {
         name: user?.displayName,
