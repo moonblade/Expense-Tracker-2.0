@@ -14,8 +14,6 @@ import {
   DialogTitle,
   Button,
   Stack,
-  Switch,
-  FormControlLabel,
   List,
   ListItem,
   ListItemAvatar,
@@ -24,6 +22,7 @@ import {
   ListItemSecondaryAction,
   Fab,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
 import BlockIcon from "@mui/icons-material/Block";
@@ -88,18 +87,19 @@ const categoryColors = {
 const filterTypes = ["credit", "debit"];
 
 function Transactions() {
+  const theme = useTheme(); // Use the theme for contrast calculations.
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterType, setFilterType] = useState("debit");
+  const [ignoreFilter, setIgnoreFilter] = useState("active"); // "active", "ignored", "all"
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const [showIgnored, setShowIgnored] = useState(false);
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -119,6 +119,10 @@ function Transactions() {
 
   const handleTypeChange = (event) => {
     setFilterType(event.target.value);
+  };
+
+  const handleIgnoreFilterChange = (event) => {
+    setIgnoreFilter(event.target.value);
   };
 
   const handleRefreshTransactions = async () => {
@@ -215,11 +219,19 @@ function Transactions() {
         filterCategory === "all" || transaction.category === filterCategory;
       const typeMatch =
         filterType === "all" || transaction.transactiontype === filterType;
-      const ignoreMatch = showIgnored || !transaction.ignore;
+      
+      // Adjust filtering based on ignoreFilter:
+      let ignoreMatch = true;
+      if (ignoreFilter === "active") {
+        ignoreMatch = !transaction.ignore;
+      } else if (ignoreFilter === "ignored") {
+        ignoreMatch = transaction.ignore;
+      }
+      
       return queryMatch && categoryMatch && typeMatch && ignoreMatch;
     });
     setFilteredTransactions(filtered);
-  }, [transactions, searchQuery, filterCategory, filterType, showIgnored]);
+  }, [transactions, searchQuery, filterCategory, filterType, ignoreFilter]);
 
   useEffect(() => {
     const totalAmount = filteredTransactions.reduce((sum, transaction) => {
@@ -258,6 +270,30 @@ function Transactions() {
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
+      </Box>
+
+      {/* Legend below the Pie Chart */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", mt: 2 }}>
+        {pieData.map((item, index) => (
+          <Box
+            key={index}
+            onClick={() => handlePieClick(item.name)}
+            sx={{ display: "flex", alignItems: "center", cursor: "pointer", mx: 1, p: 0.5 }}
+          >
+            <Box
+              sx={{
+                width: 16,
+                height: 16,
+                backgroundColor: item.color,
+                borderRadius: "50%",
+                mr: 0.5,
+              }}
+            />
+            <Typography variant="body2">
+              {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+            </Typography>
+          </Box>
+        ))}
       </Box>
 
       {/* Search and Filters arranged vertically */}
@@ -308,83 +344,102 @@ function Transactions() {
             ))}
           </Select>
         </FormControl>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showIgnored}
-              onChange={(e) => setShowIgnored(e.target.checked)}
-              color="primary"
-            />
-          }
-          label="Show Ignored"
-        />
+        {/* New dropdown for ignore filter */}
+        <FormControl size="small" fullWidth>
+          <InputLabel>Transaction Status</InputLabel>
+          <Select
+            value={ignoreFilter}
+            onChange={handleIgnoreFilterChange}
+            label="Transaction Status"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="ignored">Ignored</MenuItem>
+          </Select>
+        </FormControl>
       </Stack>
 
       {/* Mobile-Friendly Transaction List */}
       <List>
-        {filteredTransactions.map((transaction) => (
-          <ListItem key={transaction.id} divider>
-            <ListItemAvatar>
-              <Avatar>
-                {categoryIcons[
-                  transaction.category?.toLowerCase() || "uncategorized"
-                ] || <UncategorizedIcon />}
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary={
-                <Typography
-                  sx={{
-                    textDecoration: transaction.ignore ? "line-through" : "none",
-                  }}
+        {filteredTransactions.map((transaction) => {
+          // Determine category key and corresponding color.
+          const categoryKey =
+            transaction.category?.toLowerCase() || "uncategorized";
+          
+          // Instead of setting the icon's own color, set the Avatar's background color
+          // to the pie chart color and compute a contrasting icon color.
+          const IconElement = React.cloneElement(
+            categoryIcons[categoryKey] || <UncategorizedIcon />,
+            {
+              style: { color: theme.palette.getContrastText(categoryColors[categoryKey] || "#000") },
+            }
+          );
+
+          return (
+            <ListItem key={transaction.id} divider>
+              <ListItemAvatar>
+                <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
+                  {IconElement}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                disableTypography
+                primary={
+                  <Typography
+                    sx={{
+                      textDecoration: transaction.ignore
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {transaction.merchant}
+                  </Typography>
+                }
+                secondary={
+                  <>
+                    <Typography variant="body2" color="textSecondary">
+                      {transaction.account} • ₹
+                      {transaction.amount.toLocaleString("en-IN")}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
+                        hour12: true,
+                        hour: "numeric",
+                        minute: "numeric",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </Typography>
+                  </>
+                }
+              />
+              <ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  onClick={() => handleIgnore(transaction)}
+                  title={transaction.ignore ? "Unignore" : "Ignore"}
                 >
-                  {transaction.merchant}
-                </Typography>
-              }
-              secondary={
-                <>
-                  <Typography variant="body2" color="textSecondary">
-                    {transaction.account} • ₹
-                    {transaction.amount.toLocaleString("en-IN")}
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
-                      hour12: true,
-                      hour: "numeric",
-                      minute: "numeric",
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
-                  </Typography>
-                </>
-              }
-            />
-            <ListItemSecondaryAction>
-              <IconButton
-                edge="end"
-                onClick={() => handleIgnore(transaction)}
-                title={transaction.ignore ? "Unignore" : "Ignore"}
-              >
-                <BlockIcon color={transaction.ignore ? "secondary" : "error"} />
-              </IconButton>
-              <IconButton
-                edge="end"
-                onClick={() => handleCategorize(transaction)}
-                title="Categorize"
-              >
-                <CategoryIcon color="primary" />
-              </IconButton>
-              <IconButton
-                edge="end"
-                onClick={() => handleReason(transaction)}
-                title="Add Reason"
-              >
-                <EditNoteIcon color="action" />
-              </IconButton>
-            </ListItemSecondaryAction>
-          </ListItem>
-        ))}
+                  <BlockIcon color={transaction.ignore ? "secondary" : "error"} />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  onClick={() => handleCategorize(transaction)}
+                  title="Categorize"
+                >
+                  <CategoryIcon color="primary" />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  onClick={() => handleReason(transaction)}
+                  title="Add Reason"
+                >
+                  <EditNoteIcon color="action" />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+          );
+        })}
       </List>
 
       {/* Category Dialog */}
