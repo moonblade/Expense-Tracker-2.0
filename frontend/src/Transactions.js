@@ -22,6 +22,7 @@ import {
   Avatar,
   ListItemText,
   ListItemSecondaryAction,
+  Fab,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
@@ -259,8 +260,8 @@ function Transactions() {
         </ResponsiveContainer>
       </Box>
 
-      {/* Search and Filters */}
-      <Stack direction="row" spacing={1} alignItems="center">
+      {/* Search and Filters arranged vertically */}
+      <Stack direction="column" spacing={2}>
         <TextField
           variant="outlined"
           size="small"
@@ -272,7 +273,7 @@ function Transactions() {
           }}
           fullWidth
         />
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl size="small" fullWidth>
           <InputLabel>Category</InputLabel>
           <Select
             value={filterCategory}
@@ -292,7 +293,7 @@ function Transactions() {
               ))}
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl size="small" fullWidth>
           <InputLabel>Type</InputLabel>
           <Select
             value={filterType}
@@ -317,14 +318,6 @@ function Transactions() {
           }
           label="Show Ignored"
         />
-        <IconButton
-          onClick={handleRefreshTransactions}
-          color="primary"
-          disabled={isRefreshing}
-          title="Refresh Transactions"
-        >
-          <SyncIcon />
-        </IconButton>
       </Stack>
 
       {/* Mobile-Friendly Transaction List */}
@@ -439,6 +432,17 @@ function Transactions() {
           <Button onClick={handleReasonSubmit}>Submit</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Floating Action Button for Refresh */}
+      <Fab
+        color="primary"
+        onClick={handleRefreshTransactions}
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
+        disabled={isRefreshing}
+        aria-label="refresh"
+      >
+        <SyncIcon />
+      </Fab>
     </Box>
   );
 }
