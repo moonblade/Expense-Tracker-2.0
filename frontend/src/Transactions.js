@@ -8,7 +8,6 @@ import {
   Select,
   MenuItem,
   IconButton,
-  Menu,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,13 +16,18 @@ import {
   Stack,
   Switch,
   FormControlLabel,
+  List,
+  ListItem,
+  ListItemAvatar,
+  Avatar,
+  ListItemText,
+  ListItemSecondaryAction,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import BlockIcon from "@mui/icons-material/Block";
+import CategoryIcon from "@mui/icons-material/Category";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import {
   Flight as TravelIcon,
   FamilyRestroom as FamilyIcon,
@@ -38,18 +42,18 @@ import {
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
 import {
-    categorizeTransaction,
+  categorizeTransaction,
   fetchTransactions,
   ignoreTransaction,
   processMessages,
   unignoreTransaction,
 } from "./query.svc";
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 const categoryIcons = {
@@ -85,28 +89,22 @@ const filterTypes = ["credit", "debit"];
 function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [total, setTotal] = useState([]);
+  const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterType, setFilterType] = useState("debit");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const handleShowIgnoredChange = (event) => {
-    setShowIgnored(event.target.checked);
-  };
-
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
       const data = await fetchTransactions();
       setTransactions(data.transactions || []);
     };
-
     fetchAndSetTransactions();
   }, []);
 
@@ -135,85 +133,76 @@ function Transactions() {
     }
   };
 
-  const handleMenuOpen = (event, transaction) => {
-    setMenuAnchorEl(event.currentTarget);
-    setSelectedTransaction(transaction);
-  };
-
-  const handleMenuClose = (removeSelectedTransaction = true) => {
-    setMenuAnchorEl(null);
-    if (removeSelectedTransaction)
-      setSelectedTransaction(null);
-  };
-
-  const handleIgnore = async () => {
-    if (!selectedTransaction) return;
+  const handleIgnore = async (transaction) => {
     try {
-      if (selectedTransaction.ignore) {
-        await unignoreTransaction(selectedTransaction.id);
+      if (transaction.ignore) {
+        await unignoreTransaction(transaction.id);
       } else {
-        await ignoreTransaction(selectedTransaction.id);
+        await ignoreTransaction(transaction.id);
       }
       handleRefreshTransactions();
     } catch (error) {
       console.error("Error updating transaction ignore status:", error);
-    } finally {
-      handleMenuClose();
     }
   };
 
-
-  const handleCategorize = () => {
+  const handleCategorize = (transaction) => {
+    setSelectedTransaction(transaction);
     setCategoryDialogOpen(true);
-    handleMenuClose(false);
   };
 
-  const handleReason = () => {
+  const handleReason = (transaction) => {
+    setSelectedTransaction(transaction);
     setReasonDialogOpen(true);
-    handleMenuClose();
   };
 
   const categoryTotals = transactions.reduce((acc, transaction) => {
-    if (transaction.category && !transaction.ignore && transaction.transactiontype === "debit") {
-      acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+    if (
+      transaction.category &&
+      !transaction.ignore &&
+      transaction.transactiontype === "debit"
+    ) {
+      acc[transaction.category] =
+        (acc[transaction.category] || 0) + transaction.amount;
     }
     return acc;
   }, {});
 
-  const pieData = Object.keys(categoryTotals).map((category) => ({
-    name: category,
-    value: Math.floor(categoryTotals[category]),
-    color: categoryColors[category] || "#000", // Set a color for each category
-  })).sort((a, b) => b.value - a.value);;
+  const pieData = Object.keys(categoryTotals)
+    .map((category) => ({
+      name: category,
+      value: Math.floor(categoryTotals[category]),
+      color: categoryColors[category] || "#000",
+    }))
+    .sort((a, b) => b.value - a.value);
 
   const handlePieClick = (category) => {
-    if (filterCategory === category) {
-      setFilterCategory("all");
-    } else {
-      setFilterCategory(category);
-    }
-  }
+    setFilterCategory(filterCategory === category ? "all" : category);
+  };
 
   const handleCategorySelect = async (category) => {
     if (!selectedTransaction) {
-      console.log("No transaction selected for categorization")
+      console.log("No transaction selected for categorization");
       return;
     }
     try {
       await categorizeTransaction(selectedTransaction.id, category);
-      await handleRefreshTransactions(); // Refresh data
-      console.log(`Transaction ${selectedTransaction.id} categorized as ${category}`);
+      await handleRefreshTransactions();
+      console.log(
+        `Transaction ${selectedTransaction.id} categorized as ${category}`
+      );
     } catch (error) {
       console.error("Error categorizing transaction:", error);
-      // Show error feedback to the user
     } finally {
-      setCategoryDialogOpen(false); // Close dialog
+      setCategoryDialogOpen(false);
+      setSelectedTransaction(null);
     }
   };
 
   const handleReasonSubmit = () => {
     console.log("Reason updated to:", reason);
     setReasonDialogOpen(false);
+    setSelectedTransaction(null);
   };
 
   useEffect(() => {
@@ -221,149 +210,57 @@ function Transactions() {
       const queryMatch =
         transaction.merchant.toLowerCase().includes(searchQuery) ||
         transaction.account.toLowerCase().includes(searchQuery);
-      const categoryMatch = filterCategory === "all" || transaction.category === filterCategory;
-      const typeMatch = filterType === "all" || transaction.transactiontype === filterType;
+      const categoryMatch =
+        filterCategory === "all" || transaction.category === filterCategory;
+      const typeMatch =
+        filterType === "all" || transaction.transactiontype === filterType;
       const ignoreMatch = showIgnored || !transaction.ignore;
       return queryMatch && categoryMatch && typeMatch && ignoreMatch;
     });
-
     setFilteredTransactions(filtered);
   }, [transactions, searchQuery, filterCategory, filterType, showIgnored]);
 
   useEffect(() => {
-    const total = filteredTransactions.reduce((sum, transaction) => {
+    const totalAmount = filteredTransactions.reduce((sum, transaction) => {
       return !transaction.ignore && transaction.transactiontype === "debit"
         ? sum + transaction.amount
         : sum;
     }, 0);
-    setTotal(total);
+    setTotal(totalAmount);
   }, [filteredTransactions]);
 
-  const columns = [
-    { field: "id", headerName: "ID", flex: 1 },
-    { field: "ignore", headerName: "Ignore", flex: 1 },
-    {
-      field: "category",
-      headerName: "Category",
-      width: 50,
-      renderCell: (params) => categoryIcons[params.value.toLowerCase()] || <UncategorizedIcon />,
-    },
-    {
-    field: "merchant",
-    headerName: "Merchant",
-    flex: 1,
-    renderCell: (params) => (
-        <Typography
-          sx={{
-            textDecoration: params.row.ignore ? "line-through" : "none",
-            color: params.row.ignore ? "text.secondary" : "inherit",
-          }}
-        >
-          {params.value}
-        </Typography>
-      ),
-    },
-    {
-      field: "account",
-      headerName: "Account",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            textDecoration: params.row.ignore ? "line-through" : "none",
-            color: params.row.ignore ? "text.secondary" : "inherit",
-          }}
-        >
-          {params.value}
-        </Typography>
-      ),
-    },
-    {
-      field: "amount",
-      headerName: "Amount",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography
-          sx={{
-            textDecoration: params.row.ignore ? "line-through" : "none",
-            color: params.row.ignore ? "text.secondary" : "inherit",
-          }}
-        >
-          ₹{params.value.toLocaleString("en-IN")}
-        </Typography>
-      ),
-    },
-    {
-      field: "timestamp",
-      headerName: "Date",
-      flex: 1,
-      valueFormatter: (value) =>
-        new Date(value * 1000).toLocaleString("en-IN", {
-          hour12: true,
-          hour: "numeric",
-          minute: "numeric",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }),
-    },
-    {
-      field: "transactiontype",
-      headerName: "Type",
-      flex: 1,
-      renderCell: (params) =>
-        params.value === "credit" ? (
-          <ArrowUpwardIcon style={{ color: "green" }} />
-        ) : (
-          <ArrowDownwardIcon style={{ color: "red" }} />
-        ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      flex: 0.5,
-      renderCell: (params) => (
-        <IconButton
-          size="small"
-          onClick={(event) => handleMenuOpen(event, params.row)}
-        >
-          <MoreVertIcon />
-        </IconButton>
-      ),
-    },
-  ];
-
   return (
-    <Box sx={{ height: "100vh", p: 3, display: "flex", flexDirection: "column" }}>
-      <Typography variant="h5" gutterBottom>
-        Transactions
-      </Typography>
-
-      <Typography variant="h6" color="textSecondary" mb={2}>
+    <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+      <Typography variant="h5">Transactions</Typography>
+      <Typography variant="h6" color="textSecondary">
         Total Spent: ₹{total.toLocaleString("en-IN")}
       </Typography>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie
-            data={pieData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-            labelLine={false}
-            onClick={({ name }) => handlePieClick(name)} // Filter by category on click
-          >
-            {pieData.map((entry, index) => (
-              <Cell key={index} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
+      {/* Dashboard-like Pie Chart */}
+      <Box sx={{ width: "100%", height: 250 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              labelLine={false}
+              onClick={({ name }) => handlePieClick(name)}
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={index} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </Box>
 
-      <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+      {/* Search and Filters */}
+      <Stack direction="row" spacing={1} alignItems="center">
         <TextField
           variant="outlined"
           size="small"
@@ -375,17 +272,19 @@ function Transactions() {
           }}
           fullWidth
         />
-
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Filter Category</InputLabel>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Category</InputLabel>
           <Select
             value={filterCategory}
             onChange={handleFilterChange}
-            label="Filter Category"
+            label="Category"
           >
             <MenuItem value="all">All</MenuItem>
             {Object.keys(categoryIcons)
-              .sort((a, b) => (categoryTotals[b] || 0) - (categoryTotals[a] || 0)) // Sort by totals
+              .sort(
+                (a, b) =>
+                  (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
+              )
               .map((key) => (
                 <MenuItem key={key} value={key}>
                   {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -393,13 +292,12 @@ function Transactions() {
               ))}
           </Select>
         </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Transaction</InputLabel>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Type</InputLabel>
           <Select
             value={filterType}
             onChange={handleTypeChange}
-            label="Transaction"
+            label="Type"
           >
             <MenuItem value="all">All</MenuItem>
             {filterTypes.map((filter) => (
@@ -409,18 +307,16 @@ function Transactions() {
             ))}
           </Select>
         </FormControl>
-
         <FormControlLabel
           control={
             <Switch
               checked={showIgnored}
-              onChange={handleShowIgnoredChange}
+              onChange={(e) => setShowIgnored(e.target.checked)}
               color="primary"
             />
           }
-          label="Ignore"
+          label="Show Ignored"
         />
-
         <IconButton
           onClick={handleRefreshTransactions}
           color="primary"
@@ -431,39 +327,86 @@ function Transactions() {
         </IconButton>
       </Stack>
 
-      <Box sx={{ flex: 1 }}>
-        <DataGrid
-          columnVisibilityModel={{id: false, ignore: false, transactiontype: filterType === "all"}}
-          rows={filteredTransactions}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
-          getRowId={(row) => row.id}
-          disableSelectionOnClick
-        />
-      </Box>
+      {/* Mobile-Friendly Transaction List */}
+      <List>
+        {filteredTransactions.map((transaction) => (
+          <ListItem key={transaction.id} divider>
+            <ListItemAvatar>
+              <Avatar>
+                {categoryIcons[
+                  transaction.category?.toLowerCase() || "uncategorized"
+                ] || <UncategorizedIcon />}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={
+                <Typography
+                  sx={{
+                    textDecoration: transaction.ignore ? "line-through" : "none",
+                  }}
+                >
+                  {transaction.merchant}
+                </Typography>
+              }
+              secondary={
+                <>
+                  <Typography variant="body2" color="textSecondary">
+                    {transaction.account} • ₹
+                    {transaction.amount.toLocaleString("en-IN")}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
+                      hour12: true,
+                      hour: "numeric",
+                      minute: "numeric",
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </>
+              }
+            />
+            <ListItemSecondaryAction>
+              <IconButton
+                edge="end"
+                onClick={() => handleIgnore(transaction)}
+                title={transaction.ignore ? "Unignore" : "Ignore"}
+              >
+                <BlockIcon color={transaction.ignore ? "secondary" : "error"} />
+              </IconButton>
+              <IconButton
+                edge="end"
+                onClick={() => handleCategorize(transaction)}
+                title="Categorize"
+              >
+                <CategoryIcon color="primary" />
+              </IconButton>
+              <IconButton
+                edge="end"
+                onClick={() => handleReason(transaction)}
+                title="Add Reason"
+              >
+                <EditNoteIcon color="action" />
+              </IconButton>
+            </ListItemSecondaryAction>
+          </ListItem>
+        ))}
+      </List>
 
-      <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={handleMenuClose}
+      {/* Category Dialog */}
+      <Dialog
+        open={isCategoryDialogOpen}
+        onClose={() => setCategoryDialogOpen(false)}
       >
-        <MenuItem onClick={handleIgnore}>
-          {selectedTransaction?.ignore ? "Unignore" : "Ignore"}
-        </MenuItem>
-        <MenuItem onClick={handleCategorize}>Categorize</MenuItem>
-        <MenuItem onClick={handleReason}>Add Reason</MenuItem>
-      </Menu>
-
-      <Dialog open={isCategoryDialogOpen} onClose={() => setCategoryDialogOpen(false)}>
         <DialogTitle>Select a Category</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
           {Object.keys(categoryIcons).map((key) => (
             <Button
               key={key}
               onClick={() => handleCategorySelect(key)}
               startIcon={categoryIcons[key]}
-              sx={{ margin: 1 }}
+              sx={{ m: 1 }}
             >
               {key.charAt(0).toUpperCase() + key.slice(1)}
             </Button>
@@ -474,7 +417,11 @@ function Transactions() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={isReasonDialogOpen} onClose={() => setReasonDialogOpen(false)}>
+      {/* Reason Dialog */}
+      <Dialog
+        open={isReasonDialogOpen}
+        onClose={() => setReasonDialogOpen(false)}
+      >
         <DialogTitle>Add Reason</DialogTitle>
         <DialogContent>
           <TextField
