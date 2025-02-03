@@ -62,7 +62,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { wait } from "@testing-library/user-event/dist/utils";
 
 const categoryIcons = {
   uncategorized: <UncategorizedIcon />,
