@@ -38,7 +38,7 @@ const NAVIGATION = [
     icon: <SettingsIcon />,
   },
   {
-    segment: 'transactions',
+    segment: 'transactionsui',
     title: 'Transactions',
     icon: <MonetizationOnIcon />,
   },
@@ -74,7 +74,7 @@ function PageContent({ pathname }) {
       {pathname === '/senders' && <Senders />}
       {pathname === '/patterns' && <Pattern />}
       {pathname === '/messages' && <Messages />}
-      {pathname === '/transactions' && <Transactions />}
+      {pathname === '/transactionsui' && <Transactions />}
     </Box>
   );
 }
@@ -103,7 +103,7 @@ function MainContent() {
 
   useEffect(() => {
     if (!location.pathname || location.pathname === '/') {
-      navigate('/transactions');
+      navigate('/transactionsui');
     }
   }, [location, navigate]);
 
@@ -134,7 +134,7 @@ function MainContent() {
           navigation={NAVIGATION}
           branding={{
             title: 'Expense Tracker',
-            homeUrl: '/transactions',
+            homeUrl: '/transactionsui',
           }}
           router={router} // Passing our react-router based router object
           theme={demoTheme}
