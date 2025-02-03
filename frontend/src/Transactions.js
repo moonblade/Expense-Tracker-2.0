@@ -21,7 +21,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Fab,
-  Grid,
+  Grid2 as Grid,
+  Container,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -244,263 +245,289 @@ function Transactions() {
     setTotal(totalAmount);
   }, [filteredTransactions]);
 
+  const capitalizeFirst = (str) => {
+    if ( str )
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    return str;
+  }
+
   return (
-    <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h5">Transactions - ₹{total.toLocaleString("en-IN")}</Typography>
+    <Container>
+      <Typography variant="h5">{filterCategory === "all" ? "Transactions" : capitalizeFirst(filterCategory) } - ₹{total.toLocaleString("en-IN")}</Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, height: "calc(100vh - 150px)", overflowY: "auto" }}>
 
-      {/* Dashboard-like Pie Chart */}
-      <Box sx={{ width: "100%", height: 180 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              labelLine={false}
-              onClick={({ name }) => handlePieClick(name)}
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={index} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
-      </Box>
-
-      {/* Legend below the Pie Chart */}
-      <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", mt: 2 }}>
-        {pieData.map((item, index) => (
-          <Box
-            key={index}
-            onClick={() => handlePieClick(item.name)}
-            sx={{ display: "flex", alignItems: "center", cursor: "pointer", mx: 1, p: 0.5 }}
-          >
+        <Grid container spacing={1}>
+          <Grid size={8}>
+            <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    labelLine={false}
+                    onClick={({ name }) => handlePieClick(name)}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </Grid>
+          <Grid size={4}>
             <Box
               sx={{
-                width: 16,
-                height: 16,
-                backgroundColor: item.color,
-                borderRadius: "50%",
-                mr: 0.5,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                height: "100%",
+                p: 1,
               }}
-            />
-            <Typography variant="body2">
-              {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-
-      {/* Search and Filters */}
-      <Stack direction="column" spacing={2}>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Search by merchant or account"
-          value={searchQuery}
-          onChange={handleSearch}
-          InputProps={{
-            endAdornment: <SearchIcon />,
-          }}
-          fullWidth
-        />
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={filterCategory}
-              onChange={handleFilterChange}
-              label="Category"
             >
-              <MenuItem value="all">All</MenuItem>
-              {Object.keys(categoryIcons)
-                .sort(
-                  (a, b) =>
-                    (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
-                )
-                .map((key) => (
-                  <MenuItem key={key} value={key}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
+              {pieData.map((item, index) => (
+                <Box
+                  key={index}
+                  onClick={() => handlePieClick(item.name)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    mb: 0.3,
+                    p: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      backgroundColor: item.color,
+                      borderRadius: "50%",
+                      mr: 0.5,
+                    }}
+                  />
+                  <Typography variant="body2">
+                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Search and Filters */}
+        <Stack direction="column" spacing={2}>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search by merchant or account"
+            value={searchQuery}
+            onChange={handleSearch}
+            InputProps={{
+              endAdornment: <SearchIcon />,
+            }}
+            fullWidth
+          />
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={filterCategory}
+                onChange={handleFilterChange}
+                label="Category"
+              >
+                <MenuItem value="all">All</MenuItem>
+                {Object.keys(categoryIcons)
+                  .sort(
+                    (a, b) =>
+                      (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
+                  )
+                  .map((key) => (
+                    <MenuItem key={key} value={key}>
+                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={filterType}
+                onChange={handleTypeChange}
+                label="Type"
+              >
+                <MenuItem value="all">All</MenuItem>
+                {filterTypes.map((filter) => (
+                  <MenuItem key={filter} value={filter}>
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
                   </MenuItem>
                 ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-            <InputLabel>Type</InputLabel>
-            <Select
-              value={filterType}
-              onChange={handleTypeChange}
-              label="Type"
-            >
-              <MenuItem value="all">All</MenuItem>
-              {filterTypes.map((filter) => (
-                <MenuItem key={filter} value={filter}>
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-            <InputLabel>Transaction Status</InputLabel>
-            <Select
-              value={ignoreFilter}
-              onChange={handleIgnoreFilterChange}
-              label="Transaction Status"
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="ignored">Ignored</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Stack>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+              <InputLabel>Transaction Status</InputLabel>
+              <Select
+                value={ignoreFilter}
+                onChange={handleIgnoreFilterChange}
+                label="Transaction Status"
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="ignored">Ignored</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Stack>
 
-      {/* Transaction List */}
-      <List>
-        {filteredTransactions.map((transaction) => {
-          const categoryKey =
-            transaction.category?.toLowerCase() || "uncategorized";
-          const IconElement = React.cloneElement(
-            categoryIcons[categoryKey] || <UncategorizedIcon />,
-            {
-              style: {
-                color: theme.palette.getContrastText(
-                  categoryColors[categoryKey] || "#000"
-                ),
-              },
-            }
-          );
-          return (
-            <ListItem key={transaction.id} divider>
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
-                  {IconElement}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText disableTypography>
-                <Grid container alignItems="center">
-                  <Grid item xs={7}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        textDecoration: transaction.ignore ? "line-through" : "none",
-                      }}
-                    >
-                      {transaction.merchant}
-                    </Typography>
+        {/* Transaction List */}
+        <List>
+          {filteredTransactions.map((transaction) => {
+            const categoryKey =
+              transaction.category?.toLowerCase() || "uncategorized";
+            const IconElement = React.cloneElement(
+              categoryIcons[categoryKey] || <UncategorizedIcon />,
+              {
+                style: {
+                  color: theme.palette.getContrastText(
+                    categoryColors[categoryKey] || "#000"
+                  ),
+                },
+              }
+            );
+            return (
+              <ListItem key={transaction.id} divider>
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
+                    {IconElement}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText disableTypography>
+                  <Grid container alignItems="center">
+                    <Grid item xs={7}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          textDecoration: transaction.ignore ? "line-through" : "none",
+                        }}
+                      >
+                        {transaction.merchant}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={5} sx={{ textAlign: "right" }}>
+                      <Typography variant="h6" color="primary" fontWeight="bold">
+                        ₹{transaction.amount.toLocaleString("en-IN")}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={5} sx={{ textAlign: "right" }}>
-                    <Typography variant="h6" color="primary" fontWeight="bold">
-                      ₹{transaction.amount.toLocaleString("en-IN")}
-                    </Typography>
-                  </Grid>
-                </Grid>
-                <Typography variant="body2" color="textSecondary">
-                  {transaction.account}
-                </Typography>
-                <Typography variant="caption" color="textSecondary">
-                  {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
-                    hour12: true,
-                    hour: "numeric",
-                    minute: "numeric",
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </Typography>
-              </ListItemText>
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  onClick={() => handleIgnore(transaction)}
-                  title={transaction.ignore ? "Unignore" : "Ignore"}
-                >
-                  {transaction.ignore ? (
-                    <RestoreIcon color="action" />
-                  ) : (
-                    <DeleteOutlineIcon color="action" />
-                  )}
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  onClick={() => handleCategorize(transaction)}
-                  title="Categorize"
-                >
-                  <BookmarkBorderIcon color="action" />
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  onClick={() => handleReason(transaction)}
-                  title="Add Reason"
-                >
-                  <NotesIcon color="action" />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          );
-        })}
-      </List>
+                  <Typography variant="body2" color="textSecondary">
+                    {transaction.account}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
+                      hour12: true,
+                      hour: "numeric",
+                      minute: "numeric",
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </ListItemText>
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleIgnore(transaction)}
+                    title={transaction.ignore ? "Unignore" : "Ignore"}
+                  >
+                    {transaction.ignore ? (
+                      <RestoreIcon color="action" />
+                    ) : (
+                      <DeleteOutlineIcon color="action" />
+                    )}
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleCategorize(transaction)}
+                    title="Categorize"
+                  >
+                    <BookmarkBorderIcon color="action" />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleReason(transaction)}
+                    title="Add Reason"
+                  >
+                    <NotesIcon color="action" />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            );
+          })}
+        </List>
 
-      {/* Category Dialog */}
-      <Dialog
-        open={isCategoryDialogOpen}
-        onClose={() => setCategoryDialogOpen(false)}
-      >
-        <DialogTitle>Select a Category</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
-          {Object.keys(categoryIcons).map((key) => (
-            <Button
-              key={key}
-              onClick={() => handleCategorySelect(key)}
-              startIcon={categoryIcons[key]}
-              sx={{ m: 1 }}
-            >
-              {key.charAt(0).toUpperCase() + key.slice(1)}
-            </Button>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
+        {/* Category Dialog */}
+        <Dialog
+          open={isCategoryDialogOpen}
+          onClose={() => setCategoryDialogOpen(false)}
+        >
+          <DialogTitle>Select a Category</DialogTitle>
+          <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
+            {Object.keys(categoryIcons).map((key) => (
+              <Button
+                key={key}
+                onClick={() => handleCategorySelect(key)}
+                startIcon={categoryIcons[key]}
+                sx={{ m: 1 }}
+              >
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+              </Button>
+            ))}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* Reason Dialog */}
-      <Dialog
-        open={isReasonDialogOpen}
-        onClose={() => setReasonDialogOpen(false)}
-      >
-        <DialogTitle>Add Reason</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            placeholder="Enter reason here"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReasonDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleReasonSubmit}>Submit</Button>
-        </DialogActions>
-      </Dialog>
+        {/* Reason Dialog */}
+        <Dialog
+          open={isReasonDialogOpen}
+          onClose={() => setReasonDialogOpen(false)}
+        >
+          <DialogTitle>Add Reason</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              placeholder="Enter reason here"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setReasonDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleReasonSubmit}>Submit</Button>
+          </DialogActions>
+        </Dialog>
 
-      <Fab
-        color="primary"
-        onClick={handleRefreshTransactions}
-        sx={{ position: "fixed", bottom: 16, right: 16 }}
-        disabled={isRefreshing}
-        aria-label="refresh"
-      >
-        <SyncIcon />
-      </Fab>
-    </Box>
+        <Fab
+          color="primary"
+          onClick={handleRefreshTransactions}
+          sx={{ position: "fixed", bottom: 16, right: 16 }}
+          disabled={isRefreshing}
+          aria-label="refresh"
+        >
+          <SyncIcon />
+        </Fab>
+      </Box>
+    </Container>
   );
 }
 
