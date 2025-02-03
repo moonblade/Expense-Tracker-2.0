@@ -21,13 +21,16 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Fab,
+  Grid,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
-import BlockIcon from "@mui/icons-material/Block";
-import CategoryIcon from "@mui/icons-material/Category";
-import EditNoteIcon from "@mui/icons-material/EditNote";
+// Updated icon imports:
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import NotesIcon from "@mui/icons-material/Notes";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+
 import {
   Flight as TravelIcon,
   FamilyRestroom as FamilyIcon,
@@ -41,6 +44,7 @@ import {
   Theaters as EntertainmentIcon,
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
+
 import {
   categorizeTransaction,
   fetchTransactions,
@@ -87,14 +91,14 @@ const categoryColors = {
 const filterTypes = ["credit", "debit"];
 
 function Transactions() {
-  const theme = useTheme(); // Use the theme for contrast calculations.
+  const theme = useTheme();
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterType, setFilterType] = useState("debit");
-  const [ignoreFilter, setIgnoreFilter] = useState("active"); // "active", "ignored", "all"
+  const [ignoreFilter, setIgnoreFilter] = useState("active");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -219,15 +223,13 @@ function Transactions() {
         filterCategory === "all" || transaction.category === filterCategory;
       const typeMatch =
         filterType === "all" || transaction.transactiontype === filterType;
-      
-      // Adjust filtering based on ignoreFilter:
+
       let ignoreMatch = true;
       if (ignoreFilter === "active") {
         ignoreMatch = !transaction.ignore;
       } else if (ignoreFilter === "ignored") {
         ignoreMatch = transaction.ignore;
       }
-      
       return queryMatch && categoryMatch && typeMatch && ignoreMatch;
     });
     setFilteredTransactions(filtered);
@@ -296,7 +298,7 @@ function Transactions() {
         ))}
       </Box>
 
-      {/* Search and Filters arranged vertically */}
+      {/* Search and Filters */}
       <Stack direction="column" spacing={2}>
         <TextField
           variant="outlined"
@@ -344,7 +346,6 @@ function Transactions() {
             ))}
           </Select>
         </FormControl>
-        {/* New dropdown for ignore filter */}
         <FormControl size="small" fullWidth>
           <InputLabel>Transaction Status</InputLabel>
           <Select
@@ -359,22 +360,17 @@ function Transactions() {
         </FormControl>
       </Stack>
 
-      {/* Mobile-Friendly Transaction List */}
+      {/* Transaction List */}
       <List>
         {filteredTransactions.map((transaction) => {
-          // Determine category key and corresponding color.
           const categoryKey =
             transaction.category?.toLowerCase() || "uncategorized";
-          
-          // Instead of setting the icon's own color, set the Avatar's background color
-          // to the pie chart color and compute a contrasting icon color.
           const IconElement = React.cloneElement(
             categoryIcons[categoryKey] || <UncategorizedIcon />,
             {
               style: { color: theme.palette.getContrastText(categoryColors[categoryKey] || "#000") },
             }
           );
-
           return (
             <ListItem key={transaction.id} divider>
               <ListItemAvatar>
@@ -382,59 +378,59 @@ function Transactions() {
                   {IconElement}
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText
-                disableTypography
-                primary={
-                  <Typography
-                    sx={{
-                      textDecoration: transaction.ignore
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {transaction.merchant}
-                  </Typography>
-                }
-                secondary={
-                  <>
-                    <Typography variant="body2" color="textSecondary">
-                      {transaction.account} • ₹
-                      {transaction.amount.toLocaleString("en-IN")}
+              <ListItemText disableTypography>
+                <Grid container alignItems="center">
+                  <Grid item xs={7}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        textDecoration: transaction.ignore ? "line-through" : "none",
+                      }}
+                    >
+                      {transaction.merchant}
                     </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
-                        hour12: true,
-                        hour: "numeric",
-                        minute: "numeric",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                  </Grid>
+                  <Grid item xs={5} sx={{ textAlign: "right" }}>
+                    <Typography variant="h6" color="primary" fontWeight="bold">
+                      ₹{transaction.amount.toLocaleString("en-IN")}
                     </Typography>
-                  </>
-                }
-              />
+                  </Grid>
+                </Grid>
+                <Typography variant="body2" color="textSecondary">
+                  {transaction.account}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
+                    hour12: true,
+                    hour: "numeric",
+                    minute: "numeric",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })}
+                </Typography>
+              </ListItemText>
               <ListItemSecondaryAction>
                 <IconButton
                   edge="end"
                   onClick={() => handleIgnore(transaction)}
                   title={transaction.ignore ? "Unignore" : "Ignore"}
                 >
-                  <BlockIcon color={transaction.ignore ? "secondary" : "error"} />
+                  <DeleteOutlineIcon color={transaction.ignore ? "secondary" : "error"} />
                 </IconButton>
                 <IconButton
                   edge="end"
                   onClick={() => handleCategorize(transaction)}
                   title="Categorize"
                 >
-                  <CategoryIcon color="primary" />
+                  <NotesIcon color="primary" />
                 </IconButton>
                 <IconButton
                   edge="end"
                   onClick={() => handleReason(transaction)}
                   title="Add Reason"
                 >
-                  <EditNoteIcon color="action" />
+                  <BookmarkBorderIcon color="action" />
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
@@ -488,7 +484,6 @@ function Transactions() {
         </DialogActions>
       </Dialog>
 
-      {/* Floating Action Button for Refresh */}
       <Fab
         color="primary"
         onClick={handleRefreshTransactions}
