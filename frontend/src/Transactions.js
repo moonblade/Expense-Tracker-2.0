@@ -48,6 +48,7 @@ import {
 } from "@mui/icons-material";
 
 import {
+  addTransactionReason,
   categorizeTransaction,
   fetchTransactions,
   ignoreTransaction,
@@ -61,6 +62,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { wait } from "@testing-library/user-event/dist/utils";
 
 const categoryIcons = {
   uncategorized: <UncategorizedIcon />,
@@ -164,6 +166,7 @@ function Transactions() {
 
   const handleReason = (transaction) => {
     setSelectedTransaction(transaction);
+    setReason(transaction.reason || "");
     setReasonDialogOpen(true);
   };
 
@@ -210,10 +213,18 @@ function Transactions() {
     }
   };
 
-  const handleReasonSubmit = () => {
-    console.log("Reason updated to:", reason);
-    setReasonDialogOpen(false);
-    setSelectedTransaction(null);
+  const handleReasonSubmit = async () => {
+    try {
+      await addTransactionReason(selectedTransaction.id, reason);
+      console.log(`Transaction ${selectedTransaction.id} reason updated to: ${reason}`);
+      await handleRefreshTransactions();
+    } catch (error) {
+      console.error("Error updating transaction reason:", error);
+    } finally {
+      setReasonDialogOpen(false);
+      setSelectedTransaction(null);
+      setReason("");
+    }
   };
 
   useEffect(() => {
@@ -414,7 +425,7 @@ function Transactions() {
                     variant="subtitle1"
                     sx={{ textDecoration: transaction.ignore ? "line-through" : "none" }}
                   >
-                    {transaction.merchant}
+                    {transaction.reason || transaction.merchant}
                   </Typography>
                   {(() => {
                     const date = new Date(transaction.timestamp * 1000);
