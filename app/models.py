@@ -91,6 +91,10 @@ class Transaction(BaseModel):
 class IgnoreTransactionRequest(BaseModel):
     transaction_id: str
 
+class AddTransactionReasonRequest(BaseModel):
+    transaction_id: str
+    reason: str
+
 class CategorizeTransactionRequest(BaseModel):
     transaction_id: str
     category: Category

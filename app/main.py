@@ -1,7 +1,7 @@
 import os
 from auth import validate_token
 from typing import List
-from models import CategorizeTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
+from models import AddTransactionReasonRequest, CategorizeTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
@@ -9,7 +9,7 @@ from db import get_patterns, get_senders, get_transactions, read_messages, read_
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from transactions import categorize_transaction, ignore_transaction, unignore_transaction
+from transactions import add_transaction_reason, categorize_transaction, ignore_transaction, unignore_transaction
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.base import STATE_RUNNING
 import uvicorn
@@ -117,6 +117,11 @@ def _ignore_transaction(request: IgnoreTransactionRequest, email = Security(getE
 @app.post("/transaction/unignore")
 def _unignore_transaction(request: IgnoreTransactionRequest, email = Security(getEmail)):
     unignore_transaction(request.transaction_id, email)
+    return "ok"
+
+@app.post("/transaction/reason")
+def _add_transaction_reason(request: AddTransactionReasonRequest, email = Security(getEmail)):
+    add_transaction_reason(request, email)
     return "ok"
 
 @app.post("/transaction/categorize")

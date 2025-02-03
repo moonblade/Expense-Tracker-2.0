@@ -220,3 +220,25 @@ export const categorizeTransaction = async (transactionId, category) => {
     throw error;
   }
 };
+
+export const addTransactionReason = async (transactionId, reason) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/transaction/reason`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ transaction_id: transactionId, reason }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add transaction reason");
+    }
+    return "ok";
+  } catch (error) {
+    console.error("Error adding transaction reason:", error);
+    throw error;
+  }
+};

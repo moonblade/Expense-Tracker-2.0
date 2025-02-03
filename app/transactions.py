@@ -1,6 +1,6 @@
 from typing import List
 from db import add_merchant, add_transactions_db, get_merchants, get_transaction, update_transaction
-from models import Category, Transaction
+from models import AddTransactionReasonRequest, Category, Transaction
 from fastapi import HTTPException
 from mail import Mail
 import logging
@@ -21,6 +21,14 @@ def unignore_transaction(transaction_id: str, email: str) -> str:
     if not transaction:
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.ignore = False
+    update_transaction(email, transaction.id, transaction)
+    return "ok"
+
+def add_transaction_reason(request: AddTransactionReasonRequest, email: str) -> str:
+    transaction = get_transaction(email, request.transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=400, detail="Transaction not found")
+    transaction.reason = request.reason
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
