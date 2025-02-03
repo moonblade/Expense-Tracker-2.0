@@ -323,17 +323,19 @@ function Transactions() {
 
         {/* Search and Filters */}
         <Stack direction="column" spacing={2}>
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Search by merchant or account"
-            value={searchQuery}
-            onChange={handleSearch}
-            InputProps={{
-              endAdornment: <SearchIcon />,
-            }}
-            fullWidth
-          />
+          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+            <TextField
+              variant="outlined"
+              size="small"
+              placeholder="Search by merchant or account"
+              value={searchQuery}
+              onChange={handleSearch}
+              InputProps={{
+                endAdornment: <SearchIcon />,
+              }}
+              fullWidth
+            />
+          </FormControl>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Category</InputLabel>
@@ -408,36 +410,38 @@ function Transactions() {
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText disableTypography>
-                  <Grid container alignItems="center">
-                    <Grid item xs={7}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          textDecoration: transaction.ignore ? "line-through" : "none",
-                        }}
-                      >
-                        {transaction.merchant}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={5} sx={{ textAlign: "right" }}>
-                      <Typography variant="h6" color="primary" fontWeight="bold">
-                        ₹{transaction.amount.toLocaleString("en-IN")}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                  <Typography variant="body2" color="textSecondary">
-                    {transaction.account}
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ textDecoration: transaction.ignore ? "line-through" : "none" }}
+                  >
+                    {transaction.merchant}
                   </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(transaction.timestamp * 1000).toLocaleString("en-IN", {
+                  {(() => {
+                    const date = new Date(transaction.timestamp * 1000);
+                    const day = date.getDate();
+                    // Use toLocaleString with { month: 'short' } and then convert to lower case
+                    const month = date.toLocaleString("en-IN", { month: "short" }).toLowerCase();
+                    const year = date.getFullYear();
+                    const time = date.toLocaleTimeString("en-IN", {
                       hour12: true,
                       hour: "numeric",
                       minute: "numeric",
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
-                  </Typography>
+                    });
+                    const formattedDate = `${capitalizeFirst(month)} ${day} ${year}, ${time}`;
+                    return (
+                      <>
+                        <Typography variant="body2" color="textSecondary">
+                          <span style={{ fontWeight: "bold" }}>
+                            ₹{transaction.amount.toLocaleString("en-IN")}
+                          </span>{" "}
+                          • {transaction.account}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {formattedDate}
+                        </Typography>
+                      </>
+                    );
+                  })()}
                 </ListItemText>
                 <ListItemSecondaryAction>
                   <IconButton
