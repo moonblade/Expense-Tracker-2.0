@@ -28,6 +28,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
 // Updated icon imports:
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import RestoreIcon from "@mui/icons-material/Restore"; // New restore icon for unignore
 import NotesIcon from "@mui/icons-material/Notes";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 
@@ -223,7 +224,6 @@ function Transactions() {
         filterCategory === "all" || transaction.category === filterCategory;
       const typeMatch =
         filterType === "all" || transaction.transactiontype === filterType;
-
       let ignoreMatch = true;
       if (ignoreFilter === "active") {
         ignoreMatch = !transaction.ignore;
@@ -246,13 +246,10 @@ function Transactions() {
 
   return (
     <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h5">Transactions</Typography>
-      <Typography variant="h6" color="textSecondary">
-        Total Spent: ₹{total.toLocaleString("en-IN")}
-      </Typography>
+      <Typography variant="h5">Transactions - ₹{total.toLocaleString("en-IN")}</Typography>
 
       {/* Dashboard-like Pie Chart */}
-      <Box sx={{ width: "100%", height: 250 }}>
+      <Box sx={{ width: "100%", height: 180 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -311,53 +308,55 @@ function Transactions() {
           }}
           fullWidth
         />
-        <FormControl size="small" fullWidth>
-          <InputLabel>Category</InputLabel>
-          <Select
-            value={filterCategory}
-            onChange={handleFilterChange}
-            label="Category"
-          >
-            <MenuItem value="all">All</MenuItem>
-            {Object.keys(categoryIcons)
-              .sort(
-                (a, b) =>
-                  (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
-              )
-              .map((key) => (
-                <MenuItem key={key} value={key}>
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={filterCategory}
+              onChange={handleFilterChange}
+              label="Category"
+            >
+              <MenuItem value="all">All</MenuItem>
+              {Object.keys(categoryIcons)
+                .sort(
+                  (a, b) =>
+                    (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
+                )
+                .map((key) => (
+                  <MenuItem key={key} value={key}>
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+            <InputLabel>Type</InputLabel>
+            <Select
+              value={filterType}
+              onChange={handleTypeChange}
+              label="Type"
+            >
+              <MenuItem value="all">All</MenuItem>
+              {filterTypes.map((filter) => (
+                <MenuItem key={filter} value={filter}>
+                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
                 </MenuItem>
               ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" fullWidth>
-          <InputLabel>Type</InputLabel>
-          <Select
-            value={filterType}
-            onChange={handleTypeChange}
-            label="Type"
-          >
-            <MenuItem value="all">All</MenuItem>
-            {filterTypes.map((filter) => (
-              <MenuItem key={filter} value={filter}>
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" fullWidth>
-          <InputLabel>Transaction Status</InputLabel>
-          <Select
-            value={ignoreFilter}
-            onChange={handleIgnoreFilterChange}
-            label="Transaction Status"
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="ignored">Ignored</MenuItem>
-          </Select>
-        </FormControl>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+            <InputLabel>Transaction Status</InputLabel>
+            <Select
+              value={ignoreFilter}
+              onChange={handleIgnoreFilterChange}
+              label="Transaction Status"
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="ignored">Ignored</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Stack>
 
       {/* Transaction List */}
@@ -368,7 +367,11 @@ function Transactions() {
           const IconElement = React.cloneElement(
             categoryIcons[categoryKey] || <UncategorizedIcon />,
             {
-              style: { color: theme.palette.getContrastText(categoryColors[categoryKey] || "#000") },
+              style: {
+                color: theme.palette.getContrastText(
+                  categoryColors[categoryKey] || "#000"
+                ),
+              },
             }
           );
           return (
@@ -416,21 +419,25 @@ function Transactions() {
                   onClick={() => handleIgnore(transaction)}
                   title={transaction.ignore ? "Unignore" : "Ignore"}
                 >
-                  <DeleteOutlineIcon color={transaction.ignore ? "secondary" : "error"} />
+                  {transaction.ignore ? (
+                    <RestoreIcon color="action" />
+                  ) : (
+                    <DeleteOutlineIcon color="action" />
+                  )}
                 </IconButton>
                 <IconButton
                   edge="end"
                   onClick={() => handleCategorize(transaction)}
                   title="Categorize"
                 >
-                  <NotesIcon color="primary" />
+                  <BookmarkBorderIcon color="action" />
                 </IconButton>
                 <IconButton
                   edge="end"
                   onClick={() => handleReason(transaction)}
                   title="Add Reason"
                 >
-                  <BookmarkBorderIcon color="action" />
+                  <NotesIcon color="action" />
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
