@@ -27,9 +27,8 @@ import {
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import SyncIcon from "@mui/icons-material/Sync";
-// Updated icon imports:
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import RestoreIcon from "@mui/icons-material/Restore"; // New restore icon for unignore
+import RestoreIcon from "@mui/icons-material/Restore";
 import NotesIcon from "@mui/icons-material/Notes";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 
@@ -62,6 +61,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+// Import MUI X DatePicker components
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 const categoryIcons = {
   uncategorized: <UncategorizedIcon />,
@@ -108,6 +111,10 @@ function Transactions() {
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
 
+  // New state for date pickers
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
+
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
       const data = await fetchTransactions();
@@ -115,6 +122,21 @@ function Transactions() {
     };
     fetchAndSetTransactions();
   }, []);
+
+  // Log epoch times when both dates are selected
+  useEffect(() => {
+    if (fromDate && toDate) {
+      // Create copies of the selected dates
+      const startDate = new Date(fromDate);
+      const endDate = new Date(toDate);
+      // Set startDate to the start of day (00:00:00.000)
+      startDate.setHours(0, 0, 0, 0);
+      // Set endDate to the end of day (23:59:59.999)
+      endDate.setHours(23, 59, 59, 999);
+      console.log("From Date epoch:", Math.floor(startDate.getTime() / 1000));
+      console.log("To Date epoch:", Math.floor(endDate.getTime() / 1000));
+    }
+  }, [fromDate, toDate]);
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
@@ -215,7 +237,9 @@ function Transactions() {
   const handleReasonSubmit = async () => {
     try {
       await addTransactionReason(selectedTransaction.id, reason);
-      console.log(`Transaction ${selectedTransaction.id} reason updated to: ${reason}`);
+      console.log(
+        `Transaction ${selectedTransaction.id} reason updated to: ${reason}`
+      );
       await handleRefreshTransactions();
     } catch (error) {
       console.error("Error updating transaction reason:", error);
@@ -256,16 +280,27 @@ function Transactions() {
   }, [filteredTransactions]);
 
   const capitalizeFirst = (str) => {
-    if ( str )
-      return str.charAt(0).toUpperCase() + str.slice(1);
+    if (str) return str.charAt(0).toUpperCase() + str.slice(1);
     return str;
-  }
+  };
 
   return (
     <Container>
-      <Typography variant="h5">{filterCategory === "all" ? "Transactions" : capitalizeFirst(filterCategory) } - ₹{total.toLocaleString("en-IN")}</Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, height: "calc(100vh - 150px)", overflowY: "auto" }}>
-
+      <Typography variant="h5">
+        {filterCategory === "all"
+          ? "Transactions"
+          : capitalizeFirst(filterCategory)}{" "}
+        - ₹{total.toLocaleString("en-IN")}
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          height: "calc(100vh - 150px)",
+          overflowY: "auto",
+        }}
+      >
         <Grid container spacing={1}>
           <Grid size={8}>
             <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
@@ -346,7 +381,7 @@ function Transactions() {
               fullWidth
             />
           </FormControl>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Category</InputLabel>
               <Select
@@ -395,6 +430,28 @@ function Transactions() {
               </Select>
             </FormControl>
           </Box>
+
+          {/* Date Filter using MUI X DatePicker */}
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Stack direction="row" spacing={2}>
+              <DatePicker
+                label="From Date"
+                value={fromDate}
+                onChange={(newValue) => setFromDate(newValue)}
+                renderInput={(params) => (
+                  <TextField {...params} size="small" />
+                )}
+              />
+              <DatePicker
+                label="To Date"
+                value={toDate}
+                onChange={(newValue) => setToDate(newValue)}
+                renderInput={(params) => (
+                  <TextField {...params} size="small" />
+                )}
+              />
+            </Stack>
+          </LocalizationProvider>
         </Stack>
 
         {/* Transaction List */}
@@ -422,22 +479,29 @@ function Transactions() {
                 <ListItemText disableTypography>
                   <Typography
                     variant="subtitle1"
-                    sx={{ textDecoration: transaction.ignore ? "line-through" : "none" }}
+                    sx={{
+                      textDecoration: transaction.ignore
+                        ? "line-through"
+                        : "none",
+                    }}
                   >
                     {transaction.reason || transaction.merchant}
                   </Typography>
                   {(() => {
                     const date = new Date(transaction.timestamp * 1000);
                     const day = date.getDate();
-                    // Use toLocaleString with { month: 'short' } and then convert to lower case
-                    const month = date.toLocaleString("en-IN", { month: "short" }).toLowerCase();
+                    const month = date
+                      .toLocaleString("en-IN", { month: "short" })
+                      .toLowerCase();
                     const year = date.getFullYear();
                     const time = date.toLocaleTimeString("en-IN", {
                       hour12: true,
                       hour: "numeric",
                       minute: "numeric",
                     });
-                    const formattedDate = `${capitalizeFirst(month)} ${day} ${year}, ${time}`;
+                    const formattedDate = `${capitalizeFirst(
+                      month
+                    )} ${day} ${year}, ${time}`;
                     return (
                       <>
                         <Typography variant="body2" color="textSecondary">
@@ -504,7 +568,9 @@ function Transactions() {
             ))}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => setCategoryDialogOpen(false)}>
+              Cancel
+            </Button>
           </DialogActions>
         </Dialog>
 
