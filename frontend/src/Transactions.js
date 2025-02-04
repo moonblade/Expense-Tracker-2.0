@@ -16,13 +16,12 @@ import {
   Stack,
   List,
   ListItem,
+  ListItemText,
+  Fab,
+  Container,
   ListItemAvatar,
   Avatar,
-  ListItemText,
   ListItemSecondaryAction,
-  Fab,
-  Grid2 as Grid,
-  Container,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -31,7 +30,11 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import RestoreIcon from "@mui/icons-material/Restore";
 import NotesIcon from "@mui/icons-material/Notes";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment from "moment";
 
+// Icons for categories
 import {
   Flight as TravelIcon,
   FamilyRestroom as FamilyIcon,
@@ -46,6 +49,7 @@ import {
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
 
+// Service functions for transactions
 import {
   addTransactionReason,
   categorizeTransaction,
@@ -54,17 +58,140 @@ import {
   processMessages,
   unignoreTransaction,
 } from "./query.svc";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
-// Import MUI X DatePicker components
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+// Predefined date range options
+const predefinedRanges = [
+  { label: "Last Week", value: "last_week" },
+  { label: "Current Week", value: "current_week" },
+  { label: "Last Month", value: "last_month" },
+  { label: "Current Month", value: "current_month" },
+  { label: "Last Year", value: "last_year" },
+  { label: "Current Year", value: "current_year" },
+  { label: "Custom", value: "custom" },
+];
+
+// A unified Date Range Picker component
+function DateRangePicker({ fromDate, toDate, setFromDate, setToDate }) {
+  const [open, setOpen] = useState(false);
+  // Default to "current_month" so that when the dialog is opened,
+  // the default selection is current month.
+  const [selectedOption, setSelectedOption] = useState("current_month");
+  // State for custom selection
+  const [customFrom, setCustomFrom] = useState(fromDate);
+  const [customTo, setCustomTo] = useState(toDate);
+
+  useEffect(() => {
+    if (selectedOption === "custom") {
+      setCustomFrom(fromDate);
+      setCustomTo(toDate);
+    }
+  }, [open, fromDate, toDate, selectedOption]);
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    if (option !== "custom") {
+      let start, end;
+      switch (option) {
+        case "last_week":
+          start = moment().subtract(1, "week").startOf("week");
+          end = moment().subtract(1, "week").endOf("week");
+          break;
+        case "current_week":
+          start = moment().startOf("week");
+          end = moment().endOf("week");
+          break;
+        case "last_month":
+          start = moment().subtract(1, "month").startOf("month");
+          end = moment().subtract(1, "month").endOf("month");
+          break;
+        case "current_month":
+          start = moment().startOf("month");
+          end = moment().endOf("month");
+          break;
+        case "last_year":
+          start = moment().subtract(1, "year").startOf("year");
+          end = moment().subtract(1, "year").endOf("year");
+          break;
+        case "current_year":
+          start = moment().startOf("year");
+          end = moment().endOf("year");
+          break;
+        default:
+          start = moment();
+          end = moment();
+      }
+      setFromDate(start.toDate());
+      setToDate(end.toDate());
+      setOpen(false);
+    }
+  };
+
+  const handleCustomSubmit = () => {
+    if (customFrom && customTo) {
+      setFromDate(customFrom.toDate());
+      setToDate(customTo.toDate());
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div>
+      <Button variant="outlined" onClick={() => setOpen(true)}>
+        {
+          predefinedRanges.find((r) => r.value === selectedOption)?.label ||
+          "Select Date Range"
+        }
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>Select Date Range</DialogTitle>
+        <DialogContent>
+          <List>
+            {predefinedRanges.map((range) => (
+              <ListItem
+                button
+                key={range.value}
+                onClick={() => handleOptionSelect(range.value)}
+              >
+                <ListItemText primary={range.label} />
+              </ListItem>
+            ))}
+          </List>
+          {selectedOption === "custom" && (
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <DatePicker
+                  label="From Date"
+                  value={customFrom}
+                  onChange={(newValue) => setCustomFrom(newValue)}
+                  renderInput={(params) => (
+                    <TextField {...params} size="small" fullWidth />
+                  )}
+                />
+                <DatePicker
+                  label="To Date"
+                  value={customTo}
+                  onChange={(newValue) => setCustomTo(newValue)}
+                  renderInput={(params) => (
+                    <TextField {...params} size="small" fullWidth />
+                  )}
+                />
+              </Stack>
+              <DialogActions>
+                <Button onClick={() => setOpen(false)}>Cancel</Button>
+                <Button onClick={handleCustomSubmit}>Apply</Button>
+              </DialogActions>
+            </LocalizationProvider>
+          )}
+        </DialogContent>
+        {selectedOption !== "custom" && (
+          <DialogActions>
+            <Button onClick={() => setOpen(false)}>Close</Button>
+          </DialogActions>
+        )}
+      </Dialog>
+    </div>
+  );
+}
 
 const categoryIcons = {
   uncategorized: <UncategorizedIcon />,
@@ -111,9 +238,9 @@ function Transactions() {
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
 
-  // New state for date pickers
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  // Default date range: Current Month
+  const [fromDate, setFromDate] = useState(moment().startOf("month").toDate());
+  const [toDate, setToDate] = useState(moment().endOf("month").toDate());
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -126,12 +253,9 @@ function Transactions() {
   // Log epoch times when both dates are selected
   useEffect(() => {
     if (fromDate && toDate) {
-      // Create copies of the selected dates
       const startDate = new Date(fromDate);
       const endDate = new Date(toDate);
-      // Set startDate to the start of day (00:00:00.000)
       startDate.setHours(0, 0, 0, 0);
-      // Set endDate to the end of day (23:59:59.999)
       endDate.setHours(23, 59, 59, 999);
       console.log("From Date epoch:", Math.floor(startDate.getTime() / 1000));
       console.log("To Date epoch:", Math.floor(endDate.getTime() / 1000));
@@ -202,18 +326,6 @@ function Transactions() {
     }
     return acc;
   }, {});
-
-  const pieData = Object.keys(categoryTotals)
-    .map((category) => ({
-      name: category,
-      value: Math.floor(categoryTotals[category]),
-      color: categoryColors[category] || "#000",
-    }))
-    .sort((a, b) => b.value - a.value);
-
-  const handlePieClick = (category) => {
-    setFilterCategory(filterCategory === category ? "all" : category);
-  };
 
   const handleCategorySelect = async (category) => {
     if (!selectedTransaction) {
@@ -301,72 +413,7 @@ function Transactions() {
           overflowY: "auto",
         }}
       >
-        <Grid container spacing={1}>
-          <Grid size={8}>
-            <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={90}
-                    labelLine={false}
-                    onClick={({ name }) => handlePieClick(name)}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </Box>
-          </Grid>
-          <Grid size={4}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                height: "100%",
-                p: 1,
-              }}
-            >
-              {pieData.map((item, index) => (
-                <Box
-                  key={index}
-                  onClick={() => handlePieClick(item.name)}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    mb: 0.3,
-                    p: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      backgroundColor: item.color,
-                      borderRadius: "50%",
-                      mr: 0.5,
-                    }}
-                  />
-                  <Typography variant="body2">
-                    {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Grid>
-        </Grid>
-
-        {/* Search and Filters */}
+        {/* Search and Filter Section */}
         <Stack direction="column" spacing={2}>
           <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
             <TextField
@@ -375,9 +422,7 @@ function Transactions() {
               placeholder="Search by merchant or account"
               value={searchQuery}
               onChange={handleSearch}
-              InputProps={{
-                endAdornment: <SearchIcon />,
-              }}
+              InputProps={{ endAdornment: <SearchIcon /> }}
               fullWidth
             />
           </FormControl>
@@ -391,13 +436,10 @@ function Transactions() {
               >
                 <MenuItem value="all">All</MenuItem>
                 {Object.keys(categoryIcons)
-                  .sort(
-                    (a, b) =>
-                      (categoryTotals[b] || 0) - (categoryTotals[a] || 0)
-                  )
+                  .sort((a, b) => (categoryTotals[b] || 0) - (categoryTotals[a] || 0))
                   .map((key) => (
                     <MenuItem key={key} value={key}>
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
+                      {capitalizeFirst(key)}
                     </MenuItem>
                   ))}
               </Select>
@@ -412,7 +454,7 @@ function Transactions() {
                 <MenuItem value="all">All</MenuItem>
                 {filterTypes.map((filter) => (
                   <MenuItem key={filter} value={filter}>
-                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    {capitalizeFirst(filter)}
                   </MenuItem>
                 ))}
               </Select>
@@ -431,41 +473,26 @@ function Transactions() {
             </FormControl>
           </Box>
 
-          {/* Date Filter using MUI X DatePicker */}
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Stack direction="row" spacing={2}>
-              <DatePicker
-                label="From Date"
-                value={fromDate}
-                onChange={(newValue) => setFromDate(newValue)}
-                renderInput={(params) => (
-                  <TextField {...params} size="small" />
-                )}
-              />
-              <DatePicker
-                label="To Date"
-                value={toDate}
-                onChange={(newValue) => setToDate(newValue)}
-                renderInput={(params) => (
-                  <TextField {...params} size="small" />
-                )}
-              />
-            </Stack>
+          {/* Unified Date Range Picker */}
+          <LocalizationProvider dateAdapter={AdapterMoment}>
+            <DateRangePicker
+              fromDate={fromDate}
+              toDate={toDate}
+              setFromDate={setFromDate}
+              setToDate={setToDate}
+            />
           </LocalizationProvider>
         </Stack>
 
         {/* Transaction List */}
         <List>
           {filteredTransactions.map((transaction) => {
-            const categoryKey =
-              transaction.category?.toLowerCase() || "uncategorized";
+            const categoryKey = transaction.category?.toLowerCase() || "uncategorized";
             const IconElement = React.cloneElement(
               categoryIcons[categoryKey] || <UncategorizedIcon />,
               {
                 style: {
-                  color: theme.palette.getContrastText(
-                    categoryColors[categoryKey] || "#000"
-                  ),
+                  color: theme.palette.getContrastText(categoryColors[categoryKey] || "#000"),
                 },
               }
             );
@@ -476,47 +503,45 @@ function Transactions() {
                     {IconElement}
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText disableTypography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      textDecoration: transaction.ignore
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {transaction.reason || transaction.merchant}
-                  </Typography>
-                  {(() => {
-                    const date = new Date(transaction.timestamp * 1000);
-                    const day = date.getDate();
-                    const month = date
-                      .toLocaleString("en-IN", { month: "short" })
-                      .toLowerCase();
-                    const year = date.getFullYear();
-                    const time = date.toLocaleTimeString("en-IN", {
-                      hour12: true,
-                      hour: "numeric",
-                      minute: "numeric",
-                    });
-                    const formattedDate = `${capitalizeFirst(
-                      month
-                    )} ${day} ${year}, ${time}`;
-                    return (
-                      <>
-                        <Typography variant="body2" color="textSecondary">
-                          <span style={{ fontWeight: "bold" }}>
-                            ₹{transaction.amount.toLocaleString("en-IN")}
-                          </span>{" "}
-                          • {transaction.account}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {formattedDate}
-                        </Typography>
-                      </>
-                    );
-                  })()}
-                </ListItemText>
+                <ListItemText
+                  disableTypography
+                  primary={
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        textDecoration: transaction.ignore ? "line-through" : "none",
+                      }}
+                    >
+                      {transaction.reason || transaction.merchant}
+                    </Typography>
+                  }
+                  secondary={
+                    <>
+                      <Typography variant="body2" color="textSecondary">
+                        <span style={{ fontWeight: "bold" }}>
+                          ₹{transaction.amount.toLocaleString("en-IN")}
+                        </span>{" "}
+                        • {transaction.account}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {(() => {
+                          const date = new Date(transaction.timestamp * 1000);
+                          const day = date.getDate();
+                          const month = date
+                            .toLocaleString("en-IN", { month: "short" })
+                            .toLowerCase();
+                          const year = date.getFullYear();
+                          const time = date.toLocaleTimeString("en-IN", {
+                            hour12: true,
+                            hour: "numeric",
+                            minute: "numeric",
+                          });
+                          return `${capitalizeFirst(month)} ${day} ${year}, ${time}`;
+                        })()}
+                      </Typography>
+                    </>
+                  }
+                />
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
@@ -550,10 +575,7 @@ function Transactions() {
         </List>
 
         {/* Category Dialog */}
-        <Dialog
-          open={isCategoryDialogOpen}
-          onClose={() => setCategoryDialogOpen(false)}
-        >
+        <Dialog open={isCategoryDialogOpen} onClose={() => setCategoryDialogOpen(false)}>
           <DialogTitle>Select a Category</DialogTitle>
           <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
             {Object.keys(categoryIcons).map((key) => (
@@ -563,22 +585,17 @@ function Transactions() {
                 startIcon={categoryIcons[key]}
                 sx={{ m: 1 }}
               >
-                {key.charAt(0).toUpperCase() + key.slice(1)}
+                {capitalizeFirst(key)}
               </Button>
             ))}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setCategoryDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
           </DialogActions>
         </Dialog>
 
         {/* Reason Dialog */}
-        <Dialog
-          open={isReasonDialogOpen}
-          onClose={() => setReasonDialogOpen(false)}
-        >
+        <Dialog open={isReasonDialogOpen} onClose={() => setReasonDialogOpen(false)}>
           <DialogTitle>Add Reason</DialogTitle>
           <DialogContent>
             <TextField
@@ -597,6 +614,7 @@ function Transactions() {
           </DialogActions>
         </Dialog>
 
+        {/* Refresh Button */}
         <Fab
           color="primary"
           onClick={handleRefreshTransactions}
