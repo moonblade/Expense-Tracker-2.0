@@ -1,8 +1,8 @@
 import os
 from auth import validate_token
 from typing import List
-from models import AddTransactionReasonRequest, CategorizeTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
-from fastapi import FastAPI, Security, HTTPException, BackgroundTasks
+from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
+from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
 from db import get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
@@ -105,8 +105,9 @@ def _get_senders(email = Security(getEmail)):
     return {"senders": senders}
 
 @app.get("/transactions")
-def _get_transactions(email = Security(getEmail)):
-    transactions = get_transactions(email)
+def _get_transactions(email = Security(getEmail), transactionRequest: GetTransactionRequest = Depends()):
+    print(transactionRequest)
+    transactions = get_transactions(email, transactionRequest.from_date, transactionRequest.to_date)
     return {"transactions": transactions}
 
 @app.post("/transaction/ignore")

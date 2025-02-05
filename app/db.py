@@ -128,17 +128,28 @@ def add_transactions_db(email: str, transactions: List[Transaction]):
         print(f"Error updating transactions: {e}")
         return False
 
-def get_transactions(email, days_ago_start=30):
-    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago_start)
-    start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    start_timestamp = int(start_date.timestamp())
-
+def get_transactions(email, from_date=None, to_date=None):
     transaction_collection = db.collection("transaction").document(email).collection("transaction")
-    filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
-    query = transaction_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+    query = transaction_collection.order_by("timestamp", direction=firestore.Query.DESCENDING)
+
+    if from_date is not None and from_date != 0:
+        if len(str(from_date)) == 13:
+            from_date /= 1000 
+        from_date_dt = datetime.datetime.utcfromtimestamp(from_date)
+        print(from_date_dt)
+        query = query.where(filter=FieldFilter("timestamp", ">=", int(from_date_dt.timestamp())))
+
+    if to_date is not None and to_date != 0:
+        if len(str(to_date)) == 13:
+            to_date /= 1000
+        to_date_dt = datetime.datetime.utcfromtimestamp(to_date)
+        print(to_date_dt)
+        query = query.where(filter=FieldFilter("timestamp", "<=", int(to_date_dt.timestamp())))
+
+    query_stream = query.stream()
 
     transactions = []
-    for doc in query:
+    for doc in query_stream:
         doc_dict = doc.to_dict()
         transactions.append(Transaction(**doc_dict))
 
