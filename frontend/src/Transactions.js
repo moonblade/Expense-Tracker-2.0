@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Box,
   TextField,
@@ -244,10 +245,15 @@ function Transactions() {
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const navigate = useNavigate();
 
   // Default date range: Current Month
   const [fromDate, setFromDate] = useState(moment().startOf("month").toDate());
   const [toDate, setToDate] = useState(moment().endOf("month").toDate());
+
+  const handleTransactionClick = (transaction) => {
+    navigate(`/messages?id=${transaction.id}`);
+  };
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -582,7 +588,7 @@ function Transactions() {
               }
             );
             return (
-              <ListItem key={transaction.id} divider>
+              <ListItem key={transaction.id} divider onClick={() => handleTransactionClick(transaction)}>
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
                     {IconElement}
