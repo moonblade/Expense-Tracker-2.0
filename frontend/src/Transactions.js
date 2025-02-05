@@ -479,7 +479,8 @@ function Transactions() {
                     mr: 1,
                   }}
                 />
-                <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography>
+                <Typography variant="body2">{item.name}</Typography>
+                { false && <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography> }
               </Box>
             ))}
           </Box>
@@ -497,8 +498,8 @@ function Transactions() {
         {/* Search and Filter Section */}
         <Stack direction="column" spacing={2}>
           {/* Search and Date Range Selector Section */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            <FormControl size="small" sx={{ flex: 2, minWidth: 0 }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}> {/* Box for layout */}
+            <FormControl size="small" sx={{ flex: 1, minWidth: 220 }}>
               <TextField
                 variant="outlined"
                 size="small"
@@ -509,7 +510,7 @@ function Transactions() {
                 fullWidth
               />
             </FormControl>
-            <Box sx={{ flex: 1 }}>
+            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <LocalizationProvider dateAdapter={AdapterMoment}>
                 <DateRangePicker
                   fromDate={fromDate}
@@ -518,8 +519,8 @@ function Transactions() {
                   setToDate={setToDate}
                 />
               </LocalizationProvider>
-            </Box>
-          </Stack> 
+            </FormControl>
+          </Box>
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Category</InputLabel>
