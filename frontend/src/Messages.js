@@ -18,6 +18,7 @@ import {
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchMessages, processMessages } from "./query.svc";
 import SyncIcon from "@mui/icons-material/Sync";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
@@ -29,6 +30,18 @@ function Messages() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState(searchParams.get("id") || null);
+
+  useEffect(() => {
+    setSelectedMessageId(searchParams.get("id") || null);
+  }, [searchParams]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setFilterStatus("all");
+    setSearchParams({});
+    setSelectedMessageId(null);
+  };
 
   const handleMessageClick = (msg) => {
     if (msg.matchedPattern && msg.matchedPattern !== "") {
@@ -54,28 +67,32 @@ function Messages() {
   }, [filterStatus]);
 
   useEffect(() => {
-    const filterMessages = (query, status) => {
+    const filterMessages = (query, status, messageId) => {
       let updatedMessages = messages;
 
-      if (status !== "all") {
-        updatedMessages = updatedMessages.filter(
-          (msg) => msg.status.toLowerCase() === status
-        );
-      }
+      if (messageId) {
+        updatedMessages = updatedMessages.filter(msg => msg.id === messageId);
+      } else {
+        if (status !== "all") {
+          updatedMessages = updatedMessages.filter(
+            (msg) => msg.status.toLowerCase() === status
+          );
+        }
 
-      if (query) {
-        updatedMessages = updatedMessages.filter(
-          (msg) =>
-            msg.sender.toLowerCase().includes(query.toLowerCase()) ||
-            msg.sms.toLowerCase().includes(query.toLowerCase())
-        );
+        if (query) {
+          updatedMessages = updatedMessages.filter(
+            (msg) =>
+              msg.sender.toLowerCase().includes(query.toLowerCase()) ||
+              msg.sms.toLowerCase().includes(query.toLowerCase())
+          );
+        }
       }
 
       setFilteredMessages(updatedMessages);
     };
     localStorage.setItem(FILTER_STATUS_KEY, filterStatus);
-    filterMessages(searchQuery, filterStatus);
-  }, [filterStatus, searchQuery, messages]);
+    filterMessages(searchQuery, filterStatus, selectedMessageId);
+  }, [filterStatus, searchQuery, messages, selectedMessageId]);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -119,6 +136,18 @@ function Messages() {
           value={searchQuery}
           onChange={handleSearch}
           fullWidth
+          InputProps={{
+            endAdornment: (
+              <>
+                {(searchQuery || filterStatus !== "all" || selectedMessageId) && (
+                  <ClearIcon
+                    onClick={handleClearFilters}
+                    sx={{ cursor: "pointer", marginRight: 1 }}
+                  />
+                )}
+              </>
+            ),
+          }}
         />
       </FormControl>
 
