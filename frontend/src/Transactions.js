@@ -22,6 +22,7 @@ import {
   ListItemAvatar,
   Avatar,
   ListItemSecondaryAction,
+  Grid,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -33,6 +34,13 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import moment from "moment";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 // Icons for categories
 import {
@@ -61,12 +69,12 @@ import {
 
 // Predefined date range options
 const predefinedRanges = [
-  { label: "Last Week", value: "last_week" },
-  { label: "Current Week", value: "current_week" },
-  { label: "Last Month", value: "last_month" },
-  { label: "Current Month", value: "current_month" },
-  { label: "Last Year", value: "last_year" },
-  { label: "Current Year", value: "current_year" },
+  { label: "L-Week", value: "last_week" },
+  { label: "C-Week", value: "current_week" },
+  { label: "L-Month", value: "last_month" },
+  { label: "C-Month", value: "current_month" },
+  { label: "L-Year", value: "last_year" },
+  { label: "C-Year", value: "current_year" },
   { label: "Custom", value: "custom" },
 ];
 
@@ -148,7 +156,6 @@ function DateRangePicker({ fromDate, toDate, setFromDate, setToDate }) {
           <List>
             {predefinedRanges.map((range) => (
               <ListItem
-                button
                 key={range.value}
                 onClick={() => handleOptionSelect(range.value)}
               >
@@ -327,6 +334,18 @@ function Transactions() {
     return acc;
   }, {});
 
+  const pieData = Object.keys(categoryTotals)
+    .map((category) => ({
+      name: category,
+      value: Math.floor(categoryTotals[category]),
+      color: categoryColors[category] || "#000",
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  const handlePieClick = (category) => {
+    setFilterCategory(filterCategory === category ? "all" : category);
+  };
+
   const handleCategorySelect = async (category) => {
     if (!selectedTransaction) {
       console.log("No transaction selected for categorization");
@@ -404,6 +423,68 @@ function Transactions() {
           : capitalizeFirst(filterCategory)}{" "}
         - ₹{total.toLocaleString("en-IN")}
       </Typography>
+      <Grid container spacing={1}>
+        <Grid item xs={7}>
+          <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  labelLine={false}
+                  onClick={({ name }) => handlePieClick(name)}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={index} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Grid>
+        <Grid item xs={5}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              height: "100%",
+              p: 1,
+            }}
+          >
+            {pieData.map((item, index) => (
+              <Box
+                key={index}
+                onClick={() => handlePieClick(item.name)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  mb: 0.3,
+                  p: 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    backgroundColor: item.color,
+                    mr: 1,
+                  }}
+                />
+                <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Grid>
+      </Grid>
       <Box
         sx={{
           display: "flex",
@@ -415,17 +496,30 @@ function Transactions() {
       >
         {/* Search and Filter Section */}
         <Stack direction="column" spacing={2}>
-          <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search by merchant or account"
-              value={searchQuery}
-              onChange={handleSearch}
-              InputProps={{ endAdornment: <SearchIcon /> }}
-              fullWidth
-            />
-          </FormControl>
+          {/* Search and Date Range Selector Section */}
+          <Stack direction="row" spacing={2} alignItems="center">
+            <FormControl size="small" sx={{ flex: 2, minWidth: 0 }}>
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Search by merchant or account"
+                value={searchQuery}
+                onChange={handleSearch}
+                InputProps={{ endAdornment: <SearchIcon /> }}
+                fullWidth
+              />
+            </FormControl>
+            <Box sx={{ flex: 1 }}>
+              <LocalizationProvider dateAdapter={AdapterMoment}>
+                <DateRangePicker
+                  fromDate={fromDate}
+                  toDate={toDate}
+                  setFromDate={setFromDate}
+                  setToDate={setToDate}
+                />
+              </LocalizationProvider>
+            </Box>
+          </Stack> 
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Category</InputLabel>
@@ -472,16 +566,6 @@ function Transactions() {
               </Select>
             </FormControl>
           </Box>
-
-          {/* Unified Date Range Picker */}
-          <LocalizationProvider dateAdapter={AdapterMoment}>
-            <DateRangePicker
-              fromDate={fromDate}
-              toDate={toDate}
-              setFromDate={setFromDate}
-              setToDate={setToDate}
-            />
-          </LocalizationProvider>
         </Stack>
 
         {/* Transaction List */}

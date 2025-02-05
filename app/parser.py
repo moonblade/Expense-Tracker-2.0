@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 import json
+import hashlib
 import logging
 import re
 from typing import List
@@ -55,8 +56,11 @@ def parseMessages(email: str, messages: List[Message], backgroundTasks=None):
     rejected = []
     matched = []
     transactions = []
+    hashes = set()
     for message in messages:
         sender = message.sender
+        sms = message.sms
+        hash = hashlib.md5(sms.encode()).hexdigest()
         if not sender:
             if message.status != MessageStatus.rejected:
                 logging.info(f"Rejecting message with no sender: {message}")
@@ -66,7 +70,11 @@ def parseMessages(email: str, messages: List[Message], backgroundTasks=None):
             if message.status != MessageStatus.rejected:
                 rejected.append(message)
             continue
-        sms = message.sms
+        if hash in hashes:
+            logging.info(f"Rejecting duplicate message: {message.sms}")
+            rejected.append(message)
+            continue
+        hashes.add(hash)
         timestamp = message.timestamp
         success, status, pattern, transaction = parseMessage(message)
         if success:
