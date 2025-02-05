@@ -257,22 +257,14 @@ function Transactions() {
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
-      const data = await fetchTransactions();
-      setTransactions(data.transactions || []);
-    };
-    fetchAndSetTransactions();
-  }, []);
-
-  // Log epoch times when both dates are selected
-  useEffect(() => {
-    if (fromDate && toDate) {
       const startDate = new Date(fromDate);
       const endDate = new Date(toDate);
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
-      console.log("From Date epoch:", Math.floor(startDate.getTime() / 1000));
-      console.log("To Date epoch:", Math.floor(endDate.getTime() / 1000));
-    }
+      const data = await fetchTransactions(startDate.getTime(), endDate.getTime());
+      setTransactions(data.transactions || []);
+    };
+    fetchAndSetTransactions();
   }, [fromDate, toDate]);
 
   const handleSearch = (event) => {
@@ -295,7 +287,7 @@ function Transactions() {
     processMessages();
     setIsRefreshing(true);
     try {
-      const data = await fetchTransactions();
+      const data = await fetchTransactions(fromDate.getTime(), toDate.getTime());
       setTransactions(data.transactions || []);
     } catch (error) {
       console.error("Error refreshing transactions:", error);

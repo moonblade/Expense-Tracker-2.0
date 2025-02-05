@@ -98,3 +98,7 @@ class AddTransactionReasonRequest(BaseModel):
 class CategorizeTransactionRequest(BaseModel):
     transaction_id: str
     category: Category
+
+class GetTransactionRequest(BaseModel):
+    from_date: int = 0
+    to_date: int = 0

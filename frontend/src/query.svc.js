@@ -133,10 +133,20 @@ export const updatePattern = async (pattern) => {
   }
 };
 
-export const fetchTransactions = async () => {
+export const fetchTransactions = async (fromDate, toDate) => {
   try {
     const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
-    const response = await fetch(`${API_BASE_URL}/transactions`, {
+    const queryString = new URLSearchParams({
+      from_date: fromDate,
+      to_date: toDate,
+    }).toString();
+
+    const url = `${API_BASE_URL}/transactions?${queryString}`;
+    const response = await fetch(url, {
+      params: {
+        from_date: fromDate,
+        to_date: toDate,
+      },
       headers: {
         Authorization: `Bearer ${idToken}`,
       },
