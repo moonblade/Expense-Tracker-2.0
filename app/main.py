@@ -66,7 +66,10 @@ def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -
     raise HTTPException(status_code=401, detail="Missing token")
 
 @app.get("/")
-@app.get("/{full_path:path}")
+@app.get("/transactionsui")
+@app.get("/patterns")
+@app.get("/messages")
+@app.get("/senders")
 def ui() -> str:
     return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
 
