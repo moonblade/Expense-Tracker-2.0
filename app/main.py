@@ -67,9 +67,9 @@ def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -
 
 @app.get("/")
 @app.get("/transactionsui")
-@app.get("/patterns")
-@app.get("/messages")
-@app.get("/senders")
+@app.get("/patternsui")
+@app.get("/messagesui")
+@app.get("/sendersui")
 def ui() -> str:
     return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
 
