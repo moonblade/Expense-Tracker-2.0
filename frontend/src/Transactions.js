@@ -252,7 +252,7 @@ function Transactions() {
   const [toDate, setToDate] = useState(moment().endOf("month").toDate());
 
   const handleTransactionClick = (transaction) => {
-    navigate(`/messages?id=${transaction.id}`);
+    navigate(`/messagesui?id=${transaction.id}`);
   };
 
   useEffect(() => {

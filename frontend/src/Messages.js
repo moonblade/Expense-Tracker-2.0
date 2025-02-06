@@ -46,14 +46,14 @@ function Messages() {
   const handleMessageClick = (msg) => {
     if (msg.matchedPattern && msg.matchedPattern !== "") {
       // If matchedPattern is non-empty, navigate to /patterns with id as matchedPattern
-      navigate(`/patterns?id=${encodeURIComponent(msg.matchedPattern)}`);
+      navigate(`/patternsui?id=${encodeURIComponent(msg.matchedPattern)}`);
     } else if (msg.status !== "unprocessed") {
       // If status is not "unprocessed", navigate to /senders page with sender's last part
       const senderId = msg.sender.split("-").pop(); // get the last part after the last dash
-      navigate(`/senders?search=${senderId}`);
+      navigate(`/sendersui?search=${senderId}`);
     } else if (msg.status === "unprocessed") {
       // If status is "unprocessed", navigate to /patterns page
-      navigate(`/patterns?sender=${encodeURIComponent(msg.sender)}&content=${encodeURIComponent(msg.sms)}`);
+      navigate(`/patternsui?sender=${encodeURIComponent(msg.sender)}&content=${encodeURIComponent(msg.sms)}`);
     }
   };
 
