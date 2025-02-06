@@ -23,17 +23,17 @@ const NAVIGATION = [
     title: 'Pages',
   },
   {
-    segment: 'senders',
+    segment: 'sendersui',
     title: 'Senders',
     icon: <AccountBalanceWalletIcon />,
   },
   {
-    segment: 'messages',
+    segment: 'messagesui',
     title: 'Messages',
     icon: <ReceiptLongIcon />,
   },
   {
-    segment: 'patterns',
+    segment: 'patternsui',
     title: 'Patterns',
     icon: <SettingsIcon />,
   },
