@@ -71,9 +71,9 @@ function PageContent({ pathname }) {
         textAlign: 'left',
       }}
     >
-      {pathname === '/senders' && <Senders />}
-      {pathname === '/patterns' && <Pattern />}
-      {pathname === '/messages' && <Messages />}
+      {pathname === '/sendersui' && <Senders />}
+      {pathname === '/patternsui' && <Pattern />}
+      {pathname === '/messagesui' && <Messages />}
       {pathname === '/transactionsui' && <Transactions />}
     </Box>
   );
