@@ -422,7 +422,7 @@ function Transactions() {
         - ₹{total.toLocaleString("en-IN")}
       </Typography>
       <Grid container spacing={1}>
-        <Grid item xs={7}>
+        <Grid item xs={6}>
           <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -432,7 +432,7 @@ function Transactions() {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={90}
+                  outerRadius={80}
                   labelLine={false}
                   onClick={({ name }) => handlePieClick(name)}
                 >
@@ -445,7 +445,7 @@ function Transactions() {
             </ResponsiveContainer>
           </Box>
         </Grid>
-        <Grid item xs={5}>
+        <Grid item xs={6}>
           <Box
             sx={{
               display: "flex",
@@ -477,8 +477,8 @@ function Transactions() {
                     mr: 1,
                   }}
                 />
-                <Typography variant="body2">{item.name}</Typography>
-                { false && <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography> }
+                { false && <Typography variant="body2">{item.name}</Typography> }
+                { true && <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography> }
               </Box>
             ))}
           </Box>
