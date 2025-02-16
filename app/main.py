@@ -130,7 +130,7 @@ def _add_transaction_reason(request: AddTransactionReasonRequest, email = Securi
 
 @app.post("/transaction/categorize")
 def _categorize_transaction(request: CategorizeTransactionRequest, email = Security(getEmail)):
-    categorize_transaction(request.transaction_id, request.category, email)
+    categorize_transaction(request.transaction_id, request.category, email, manual=True)
     return "ok"
 
 if __name__ == "__main__":

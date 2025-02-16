@@ -52,12 +52,31 @@ jobs:
       id: vars
       run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-    # Build the Docker image
-    - name: Build Docker image
-      run: |
-        docker build -t ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }} app/
 
-    # Push the Docker image to GitHub Container Registry
-    - name: Push Docker image
-      run: |
-        docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }}
+    - name: Get Unix Timestamp
+      id: timestamp
+      run: echo "ts=$(date +%s)" >> "$GITHUB_ENV"
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/expense-tracker:ts_${{ env.ts }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/expense-tracker:latest
+
+    # # Build the Docker image
+    # - name: Build Docker image
+    #   run: |
+    #     docker build -t ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }} app/
+    #
+    # # Push the Docker image to GitHub Container Registry
+    # - name: Push Docker image
+    #   run: |
+    #     docker push ghcr.io/${{ github.repository_owner }}/expense-tracker:${{ env.SHORT_SHA }}

@@ -32,9 +32,11 @@ def add_transaction_reason(request: AddTransactionReasonRequest, email: str) -> 
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
-def categorize_transaction(transaction_id: str, category: Category, email: str) -> str:
+def categorize_transaction(transaction_id: str, category: Category, email: str, manual = False) -> str:
     transaction = get_transaction(email, transaction_id)
     if not transaction:
+        if manual:
+            get_transaction.cache_clear()
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.category = category
     add_merchant(transaction.merchant, category)
