@@ -155,6 +155,13 @@ def get_transactions(email, from_date=None, to_date=None):
 
     return transactions
 
+def get_transaction_uncached(email, transaction_id):
+    transaction = get_transaction(email, transaction_id)
+    if transaction:
+        return transaction
+    get_transaction.cache_clear()
+    return get_transaction(email, transaction_id)
+
 @cache
 def get_transaction(email, transaction_id):
     transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)

@@ -1,5 +1,5 @@
 from typing import List
-from db import add_merchant, add_transactions_db, get_merchants, get_transaction, update_transaction
+from db import add_merchant, add_transactions_db, get_merchants, get_transaction, get_transaction_uncached, update_transaction
 from models import AddTransactionReasonRequest, Category, Transaction
 from fastapi import HTTPException
 from mail import Mail
@@ -8,24 +8,24 @@ import re
 
 from utils import measure_time
 
-def ignore_transaction(transaction_id: str, email: str) -> str:
-    transaction = get_transaction(email, transaction_id)
+def ignore_transaction(transaction_id: str, email: str, manual: bool = False) -> str:
+    transaction = get_transaction_uncached(email, transaction_id) if manual else get_transaction(email, transaction_id)
     if not transaction:
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.ignore = True
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
-def unignore_transaction(transaction_id: str, email: str) -> str:
-    transaction = get_transaction(email, transaction_id)
+def unignore_transaction(transaction_id: str, email: str, manual: bool = False) -> str:
+    transaction = get_transaction_uncached(email, transaction_id) if manual else get_transaction(email, transaction_id)
     if not transaction:
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.ignore = False
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
-def add_transaction_reason(request: AddTransactionReasonRequest, email: str) -> str:
-    transaction = get_transaction(email, request.transaction_id)
+def add_transaction_reason(request: AddTransactionReasonRequest, email: str, manual: bool = False) -> str:
+    transaction = get_transaction_uncached(email, request.transaction_id) if manual else get_transaction(email, request.transaction_id)
     if not transaction:
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.reason = request.reason
@@ -33,10 +33,8 @@ def add_transaction_reason(request: AddTransactionReasonRequest, email: str) -> 
     return "ok"
 
 def categorize_transaction(transaction_id: str, category: Category, email: str, manual = False) -> str:
-    transaction = get_transaction(email, transaction_id)
+    transaction = get_transaction_uncached(email, transaction_id) if manual else get_transaction(email, transaction_id)
     if not transaction:
-        if manual:
-            get_transaction.cache_clear()
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.category = category
     add_merchant(transaction.merchant, category)

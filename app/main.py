@@ -115,17 +115,17 @@ def _get_transactions(email = Security(getEmail), transactionRequest: GetTransac
 
 @app.post("/transaction/ignore")
 def _ignore_transaction(request: IgnoreTransactionRequest, email = Security(getEmail)):
-    ignore_transaction(request.transaction_id, email)
+    ignore_transaction(request.transaction_id, email, manual=True)
     return "ok"
 
 @app.post("/transaction/unignore")
 def _unignore_transaction(request: IgnoreTransactionRequest, email = Security(getEmail)):
-    unignore_transaction(request.transaction_id, email)
+    unignore_transaction(request.transaction_id, email, manual=True)
     return "ok"
 
 @app.post("/transaction/reason")
 def _add_transaction_reason(request: AddTransactionReasonRequest, email = Security(getEmail)):
-    add_transaction_reason(request, email)
+    add_transaction_reason(request, email, manual=True)
     return "ok"
 
 @app.post("/transaction/categorize")
