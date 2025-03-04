@@ -5,7 +5,7 @@ from models import AddTransactionReasonRequest, CategorizeTransactionRequest, Ge
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
+from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,12 +37,12 @@ app.add_middleware(
 )
 
 def hourly_task():
-    with open("./secrets/email.txt") as f:
-        email = f.read().strip()
-    logging.info(f"Running scheduled task for email: {email} at {datetime.now()}")
-    messages = read_messages(email, 1)
-    parseMessages(email, messages)
-    logging.info(f"Finished processing messages for email: {email}")
+    emails = get_emails()
+    for email in emails:
+        logging.info(f"Running scheduled task for email: {email} at {datetime.now()}")
+        messages = read_messages(email, 1)
+        parseMessages(email, messages)
+        logging.info(f"Finished processing messages for email: {email}")
 
 scheduler = BackgroundScheduler()
 

@@ -94,6 +94,12 @@ def get_senders():
         senders.append(Sender(**doc_dict))
     return senders
 
+@cache
+def get_emails():
+    sms_collection = db.collection("sms")
+    emails = [doc.id for doc in sms_collection.stream()]
+    return emails
+
 def update_message_status(email: str, messages: List[Message]):
     if not messages:
         return
