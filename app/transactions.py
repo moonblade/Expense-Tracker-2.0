@@ -112,21 +112,24 @@ def add_transactions(email: str, transactions: List[Transaction]):
 
     transactionToAdd = []
     for transaction in transactions:
-        existingtransaction = get_transaction(email, transaction.id)
-        if existingtransaction:
-            if existingtransaction.ignore:
-                continue
-            if existingtransaction.category == Category.uncategorized:
-                update_category(transaction, existingtransaction)
-                if transaction.dict() == existingtransaction.dict():
+        try:
+            existingtransaction = get_transaction(email, transaction.id)
+            if existingtransaction:
+                if existingtransaction.ignore:
                     continue
-                logging.info(f"Updating transaction: {existingtransaction.dict()}")
-                logging.info(f"Updating transaction: {transaction.dict()}")
-                update_transaction(email, existingtransaction.id, transaction)
-        else:
-            if transaction.category == Category.uncategorized:
-                update_category(transaction)
-            transactionToAdd.append(transaction)
+                if existingtransaction.category == Category.uncategorized:
+                    update_category(transaction, existingtransaction)
+                    if transaction.dict() == existingtransaction.dict():
+                        continue
+                    logging.info(f"Updating transaction: {existingtransaction.dict()}")
+                    logging.info(f"Updating transaction: {transaction.dict()}")
+                    update_transaction(email, existingtransaction.id, transaction)
+            else:
+                if transaction.category == Category.uncategorized:
+                    update_category(transaction)
+                transactionToAdd.append(transaction)
+        except Exception as e:
+            logging.exception(f"Error adding transaction: {transaction}: {str(e)}")
 
     if len(transactionToAdd) > 0:
         print(f"Adding {len(transactionToAdd)} transactions")

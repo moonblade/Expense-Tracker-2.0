@@ -90,7 +90,10 @@ def parseMessages(email: str, messages: List[Message], backgroundTasks=None):
                         logging.exception(f"Error parsing transaction: {transaction} with message {message}")
                         continue
                 matched.append(message)
-                transactions.append(transaction)
+                if transaction:
+                    transactions.append(transaction)
+                else:
+                    logging.info(f"Matched message but no transaction: {message}")
             else:
                 rejected.append(message)
         else:
