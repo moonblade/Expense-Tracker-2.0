@@ -10,8 +10,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from transactions import add_transaction_reason, categorize_transaction, ignore_transaction, unignore_transaction
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.schedulers.base import STATE_RUNNING
 import uvicorn
 import logging
 from datetime import datetime
@@ -35,27 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-def hourly_task():
-    emails = get_emails()
-    for email in emails:
-        logging.info(f"Running scheduled task for email: {email} at {datetime.now()}")
-        messages = read_messages(email, 1)
-        parseMessages(email, messages)
-        logging.info(f"Finished processing messages for email: {email}")
-
-scheduler = BackgroundScheduler()
-
-@app.on_event("startup")
-def start_scheduler():
-    if scheduler.state != STATE_RUNNING:
-        scheduler.add_job(hourly_task, "interval", minutes=30, id="hourly_task")
-        scheduler.start()
-        logging.info("Scheduler started")
-
-@app.on_event("shutdown")
-def shutdown_event():
-    scheduler.shutdown()
 
 def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -> str:
     if credentials and credentials.scheme == "Bearer":
@@ -132,6 +109,15 @@ def _add_transaction_reason(request: AddTransactionReasonRequest, email = Securi
 def _categorize_transaction(request: CategorizeTransactionRequest, email = Security(getEmail)):
     categorize_transaction(request.transaction_id, request.category, email, manual=True)
     return "ok"
+
+@app.post("/transaction/refresh")
+def _refresh_transactions():
+    emails = get_emails()
+    for email in emails:
+        logging.info(f"Running scheduled task for email: {email} at {datetime.now()}")
+        messages = read_messages(email, 1)
+        parseMessages(email, messages)
+        logging.info(f"Finished processing messages for email: {email}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
