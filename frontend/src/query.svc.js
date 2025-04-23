@@ -272,3 +272,27 @@ export const addTransactionReason = async (transactionId, reason) => {
     throw error;
   }
 };
+
+export const testPattern = async (content, regex) => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/test-pattern`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ content, regex }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to test pattern");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error testing pattern:", error);
+    return { success: false, details: error.message };
+  }
+};

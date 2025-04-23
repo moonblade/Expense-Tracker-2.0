@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import { fetchPatterns, updatePattern, deletePattern } from "./query.svc";
+import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
 
 function Pattern() {
   const [searchParams] = useSearchParams();
@@ -34,11 +34,17 @@ function Pattern() {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [originalContent, setOriginalContent] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [testResultDialogOpen, setTestResultDialogOpen] = useState(false);
+  const [testResult, setTestResult] = useState({ success: false, details: {} });
   
   const id = searchParams.get("id", null);
-  const sender = searchParams.get("sender", null);
+  let sender = searchParams.get("sender", null);
+  if (sender && sender.includes("-")) {
+    sender = sender.split("-").pop();
+  }
   const content = searchParams.get("content", null);
 
   const fetchAndSetPatterns = async () => {
@@ -73,6 +79,7 @@ function Pattern() {
         action: "approve",
         metadata: {},
       });
+      setOriginalContent(content);
       setIsDialogOpen(true);
     }
   }, [sender, content]);
@@ -190,6 +197,16 @@ Output:`;
     window.open(url, "_blank");
   };
 
+  const handleTestPattern = async () => {
+    try {
+      const result = await testPattern(originalContent, selectedPattern.pattern);
+      setTestResult(result);
+      setTestResultDialogOpen(true);
+    } catch (error) {
+      console.error("Error testing pattern:", error);
+    }
+  };
+
   const handleSave = async () => {
     const pattern = selectedPattern.pattern || "";
     const action = selectedPattern.action || "";
@@ -207,6 +224,7 @@ Output:`;
     }
 
     try {
+      selectedPattern.originalContent = originalContent;
       await updatePattern(selectedPattern);
       console.log("Pattern saved successfully");
       handleDialogClose();
@@ -362,6 +380,11 @@ Output:`;
             <Button onClick={() => setIsDeleteDialogOpen(true)} color="secondary">
               Delete
             </Button>
+            {originalContent && (
+              <Button onClick={handleTestPattern} color="primary">
+                Test Pattern
+              </Button>
+            )}
             <Button onClick={handleSave} color="primary">
               Save
             </Button>
@@ -396,6 +419,30 @@ Output:`;
           >
             Delete
           </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Test Result Dialog */}
+      <Dialog
+        open={testResultDialogOpen}
+        onClose={() => setTestResultDialogOpen(false)}
+      >
+        <DialogTitle>Test Result</DialogTitle>
+        <DialogContent>
+          <Typography>
+            {testResult.success ? "Test Successful" : "Test Failed"}
+          </Typography>
+          {testResult.success && (
+            <Box>
+              {Object.entries(testResult.details).map(([key, value]) => (
+                <Typography key={key}>
+                  {key}: {value}
+                </Typography>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTestResultDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>

@@ -2,9 +2,9 @@ import os
 from auth import validate_token
 from typing import List
 from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
-from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path
+from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from parser import parseMessages
+from parser import parseMessages, extract_sms_details
 from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -85,6 +85,11 @@ def _delete_pattern(pattern_id: str = Path(..., description="The ID of the patte
     if not success:
         raise HTTPException(status_code=404, detail="Pattern not found")
     return {"status": "success", "message": "Pattern deleted successfully"}
+
+@app.post("/test-pattern")
+def test_pattern(content: str = Body(..., embed=True), regex: str = Body(..., embed=True)):
+    success, details = extract_sms_details(regex, content)
+    return {"success": success, "details": details}
 
 @app.get("/senders")
 def _get_senders(email = Security(getEmail)):
