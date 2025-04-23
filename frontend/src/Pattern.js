@@ -23,7 +23,7 @@ import {
   Container,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { fetchPatterns, updatePattern } from "./query.svc";
+import { fetchPatterns, updatePattern, deletePattern } from "./query.svc";
 
 function Pattern() {
   const [searchParams] = useSearchParams();
@@ -33,6 +33,7 @@ function Pattern() {
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   
   const id = searchParams.get("id", null);
@@ -146,6 +147,17 @@ function Pattern() {
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deletePattern(selectedPattern.id);
+      console.log("Pattern deleted successfully");
+      handleDialogClose();
+      fetchAndSetPatterns();
+    } catch (error) {
+      console.error("Error deleting pattern:", error);
+    }
   };
 
   const handleSave = async () => {
@@ -312,6 +324,9 @@ function Pattern() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
+            <Button onClick={() => setIsDeleteDialogOpen(true)} color="secondary">
+              Delete
+            </Button>
             <Button onClick={handleSave} color="primary">
               Save
             </Button>
@@ -324,6 +339,30 @@ function Pattern() {
         onClose={handleSnackbarClose}
         message={snackbarMessage}
       />
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this pattern?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              handleDelete();
+              setIsDeleteDialogOpen(false);
+            }}
+            color="secondary"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

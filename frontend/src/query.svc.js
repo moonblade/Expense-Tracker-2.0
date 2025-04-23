@@ -23,6 +23,26 @@ export const fetchSenders = async () => {
   }
 };
 
+export const deletePattern = async (patternId) => {
+  try {
+    const idToken = await getIdToken(); // Assumes getIdToken is defined elsewhere for authentication
+    const response = await fetch(`${API_BASE_URL}/patterns/${patternId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete pattern");
+    }
+    return "ok";
+  } catch (error) {
+    console.error("Error deleting pattern:", error);
+    throw error;
+  }
+};
+
 export const updateSenderStatus = async (name, status) => {
   try {
     const idToken = await getIdToken();

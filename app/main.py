@@ -2,10 +2,10 @@ import os
 from auth import validate_token
 from typing import List
 from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
-from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends
+from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages
-from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders
+from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -78,6 +78,13 @@ def _upsert_pattern(pattern: Pattern):
     if not success:
         raise HTTPException(status_code=400, detail="Invalid pattern")
     return "ok"
+
+@app.delete("/patterns/{pattern_id}")
+def _delete_pattern(pattern_id: str = Path(..., description="The ID of the pattern to delete")):
+    success = delete_pattern(pattern_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Pattern not found")
+    return {"status": "success", "message": "Pattern deleted successfully"}
 
 @app.get("/senders")
 def _get_senders(email = Security(getEmail)):

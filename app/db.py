@@ -192,6 +192,16 @@ def get_merchants():
         merchants[doc.id] = doc_dict
     return merchants
 
+def delete_pattern(pattern_id: str) -> bool:
+    pattern_collection = db.collection("pattern")
+    pattern_ref = pattern_collection.document(pattern_id)
+    
+    if pattern_ref.get().exists:
+        pattern_ref.delete()
+        get_patterns.cache_clear()
+        return True
+    return False
+
 def add_merchant(merchant: str, category: Category):
     merchant_collection = db.collection("merchant")
     merchant_collection.document(merchant).set({"category": category.value}, merge=True)
