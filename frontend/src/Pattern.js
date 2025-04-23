@@ -39,7 +39,8 @@ function Pattern() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [testResultDialogOpen, setTestResultDialogOpen] = useState(false);
-  const [testResult, setTestResult] = useState({ success: false, details: {} });
+const [testResult, setTestResult] = useState({ success: false, details: {} });
+const [isTestPassed, setIsTestPassed] = useState(false);
   
   const id = searchParams.get("id", null);
   let sender = searchParams.get("sender", null);
@@ -202,6 +203,7 @@ Output:`;
     try {
       const result = await testPattern(originalContent, selectedPattern.pattern);
       setTestResult(result);
+      setIsTestPassed(result.success);
       setTestResultDialogOpen(true);
     } catch (error) {
       console.error("Error testing pattern:", error);
@@ -211,6 +213,12 @@ Output:`;
   const handleSave = async () => {
     const pattern = selectedPattern.pattern || "";
     const action = selectedPattern.action || "";
+
+    if (originalContent && !isTestPassed) {
+      setSnackbarMessage("Please test the pattern and ensure it passes before saving.");
+      setSnackbarOpen(true);
+      return;
+    }
 
     if (!pattern.includes(".*")) {
       setSnackbarMessage("Pattern must contain at least one '.*'");
