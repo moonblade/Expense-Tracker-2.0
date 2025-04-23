@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
 
 function Pattern() {
@@ -310,9 +311,16 @@ Output:`;
                 multiline
                 rows={3}
               />
-              <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
-                <AutoAwesomeIcon />
-              </IconButton>
+              <Box display="flex" flexDirection="column">
+                <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
+                  <AutoAwesomeIcon />
+                </IconButton>
+                { originalContent &&
+                <IconButton onClick={handleTestPattern} aria-label="generate pattern">
+                  <TaskAltIcon />
+                </IconButton>
+                }
+              </Box>
             </Box>
             <TextField
               label="Sender"
@@ -380,11 +388,6 @@ Output:`;
             <Button onClick={() => setIsDeleteDialogOpen(true)} color="secondary">
               Delete
             </Button>
-            {originalContent && (
-              <Button onClick={handleTestPattern} color="primary">
-                Test Pattern
-              </Button>
-            )}
             <Button onClick={handleSave} color="primary">
               Save
             </Button>
