@@ -114,6 +114,7 @@ const [isTestPassed, setIsTestPassed] = useState(false);
 
   const handleFieldChange = (field, value) => {
     setSelectedPattern((prev) => ({ ...prev, [field]: value }));
+    setIsTestPassed(false);
   };
 
   const handleMetadataChange = (key, value) => {
