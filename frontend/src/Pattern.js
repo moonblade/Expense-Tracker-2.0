@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Snackbar from "@mui/material/Snackbar";
 import { useSearchParams } from "react-router-dom";
 import {
   Box,
@@ -31,6 +32,9 @@ function Pattern() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPattern, setSelectedPattern] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  
   const id = searchParams.get("id", null);
   const sender = searchParams.get("sender", null);
   const content = searchParams.get("content", null);
@@ -123,7 +127,43 @@ function Pattern() {
     });
   };
 
+// You are an expert at regex, create a regex pattern to match the following string. Use .*? for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
+//
+// "amount" - amount spent or received
+// "merchant" - who or what the amount was spent on
+//
+// If existing, the following groups can also be added
+// "balance" - current balance
+// "date" - date of payment
+//
+// The output should only have the regex and nothing else.
+//
+// Input:
+//
+// {input}
+//
+// Output:
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   const handleSave = async () => {
+    const pattern = selectedPattern.pattern || "";
+    const action = selectedPattern.action || "";
+
+    if (!pattern.includes(".*")) {
+      setSnackbarMessage("Pattern must contain at least one '.*'");
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (action === "approve" && (!pattern.includes("?P<amount>") || !pattern.includes("?P<merchant>"))) {
+      setSnackbarMessage("Pattern must contain '?P<amount>' and '?P<merchant>' for approval");
+      setSnackbarOpen(true);
+      return;
+    }
+
     try {
       await updatePattern(selectedPattern);
       console.log("Pattern saved successfully");
@@ -278,6 +318,12 @@ function Pattern() {
           </DialogActions>
         </Dialog>
       )}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+      />
     </Container>
   );
 }

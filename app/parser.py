@@ -27,10 +27,14 @@ def extract_sms_details(regex: str, sms: str):
         dict: A dictionary with capture groups as keys and matched values.
               Returns an empty dictionary if no match is found.
     """
-    match = re.search(regex, sms)
-    if match:
-        return True, match.groupdict()
-    return False, {}
+    try:
+        match = re.search(regex, sms)
+        if match:
+            return True, match.groupdict()
+        return False, {}
+    except re.error as e:
+        logging.error(f"Regex error: {e} for regex: {regex}")
+        return False, {}
 
 def reject(email: str, messages: List[Message]):
     if not messages:
