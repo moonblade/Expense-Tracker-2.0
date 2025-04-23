@@ -3,7 +3,7 @@ from models import Category, Message, MessageStatus, Pattern, Sender, Transactio
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
-from functools import cache
+import time
 import logging
 
 from utils import measure_time
@@ -202,7 +202,21 @@ def delete_pattern(pattern_id: str) -> bool:
         return True
     return False
 
-def add_merchant(merchant: str, category: Category):
+def save_sms(email: str, sms: str, sender: str):
+    timestamp = int(time.time())
+    entry = {
+        "sms": sms,
+        "sender": sender,
+        "timestamp": timestamp
+    }
+
+    try:
+        sms_collection = db.collection("sms").document(email).collection("messages")
+        sms_doc = sms_collection.document()
+        sms_doc.set(entry)
+        logging.info(f"SMS saved successfully for email: {email}")
+    except Exception as e:
+        logging.error(f"Error saving SMS for email: {email}: {e}")
     merchant_collection = db.collection("merchant")
     merchant_collection.document(merchant).set({"category": category.value}, merge=True)
     get_merchants.cache_clear()

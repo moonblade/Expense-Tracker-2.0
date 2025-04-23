@@ -2,10 +2,10 @@ import os
 from auth import validate_token
 from typing import List
 from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
-from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body
+from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages, extract_sms_details
-from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern
+from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -131,6 +131,9 @@ def _refresh_transactions():
         parseMessages(email, messages)
         logging.info(f"Finished processing messages for email: {email}")
 
-if __name__ == "__main__":
+@app.post("/sms")
+def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...)):
+    save_sms(email, sms, sender)
+    return {"status": "success", "message": "SMS saved successfully"}
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
 
