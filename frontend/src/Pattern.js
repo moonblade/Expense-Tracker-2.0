@@ -23,7 +23,7 @@ import {
   Container,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { fetchPatterns, updatePattern, deletePattern } from "./query.svc";
 
 function Pattern() {
@@ -161,13 +161,21 @@ function Pattern() {
     }
   };
 
-  const generateQuestion = (patternContent) => {
-    return `You are an expert at regex, create a regex pattern to match the following string. Use .*? for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
+  const generateQuestion = (patternContent, action) => {
+    return `You are an expert at regex, create a regex pattern to match the following string. Use .*? (dot star question mark) for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
 
-"amount" - amount spent or received
-"merchant" - who or what the amount was spent on
+${action === "approve" ? `
+This is a pattern for a payment transaction. The following groups should be definitely added in the regex:
+
+  "amount" - amount spent or received
+  "merchant" - who or what the amount was spent on
+` : `
+This is a pattern of rejecting messages that are not related to payments. So the regex should be simple enough to not get caught in technical issues.
+So any number and link should be replaced with .*?
+`}
 
 The output should only have the regex and nothing else.
+Do not add a backtick in the answer. only add the regex.
 
 Input:
 
@@ -177,7 +185,7 @@ Output:`;
   };
 
   const handleGeneratePattern = () => {
-    const question = generateQuestion(selectedPattern.pattern || "");
+    const question = generateQuestion(selectedPattern.pattern || "", selectedPattern.action || "");
     const url = `https://chatgpt.com?q=${encodeURIComponent(question)}`;
     window.open(url, "_blank");
   };
@@ -285,7 +293,7 @@ Output:`;
                 rows={3}
               />
               <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
-                <OpenInNewIcon />
+                <AutoAwesomeIcon />
               </IconButton>
             </Box>
             <TextField
