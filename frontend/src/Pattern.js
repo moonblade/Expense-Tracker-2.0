@@ -23,6 +23,7 @@ import {
   Container,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { fetchPatterns, updatePattern, deletePattern } from "./query.svc";
 
 function Pattern() {
@@ -160,6 +161,27 @@ function Pattern() {
     }
   };
 
+  const generateQuestion = (patternContent) => {
+    return `You are an expert at regex, create a regex pattern to match the following string. Use .*? for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
+
+"amount" - amount spent or received
+"merchant" - who or what the amount was spent on
+
+The output should only have the regex and nothing else.
+
+Input:
+
+${patternContent}
+
+Output:`;
+  };
+
+  const handleGeneratePattern = () => {
+    const question = generateQuestion(selectedPattern.pattern || "");
+    const url = `https://chatgpt.com?q=${encodeURIComponent(question)}`;
+    window.open(url, "_blank");
+  };
+
   const handleSave = async () => {
     const pattern = selectedPattern.pattern || "";
     const action = selectedPattern.action || "";
@@ -252,15 +274,20 @@ function Pattern() {
               fullWidth
               margin="dense"
             />
-            <TextField
-              label="Pattern"
-              value={selectedPattern.pattern}
-              onChange={(e) => handleFieldChange("pattern", e.target.value)}
-              fullWidth
-              margin="dense"
-              multiline
-              rows={3}
-            />
+            <Box display="flex" alignItems="center">
+              <TextField
+                label="Pattern"
+                value={selectedPattern.pattern}
+                onChange={(e) => handleFieldChange("pattern", e.target.value)}
+                fullWidth
+                margin="dense"
+                multiline
+                rows={3}
+              />
+              <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
+                <OpenInNewIcon />
+              </IconButton>
+            </Box>
             <TextField
               label="Sender"
               value={selectedPattern.sender}
