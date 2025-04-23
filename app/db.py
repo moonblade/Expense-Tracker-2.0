@@ -3,6 +3,7 @@ from models import Category, Message, MessageStatus, Pattern, Sender, Transactio
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
+from functools import cache
 import time
 import logging
 
@@ -217,6 +218,8 @@ def save_sms(email: str, sms: str, sender: str):
         logging.info(f"SMS saved successfully for email: {email}")
     except Exception as e:
         logging.error(f"Error saving SMS for email: {email}: {e}")
+
+def add_merchant(merchant: str, category: Category):
     merchant_collection = db.collection("merchant")
     merchant_collection.document(merchant).set({"category": category.value}, merge=True)
     get_merchants.cache_clear()

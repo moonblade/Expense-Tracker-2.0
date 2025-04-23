@@ -135,5 +135,7 @@ def _refresh_transactions():
 def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...)):
     save_sms(email, sms, sender)
     return {"status": "success", "message": "SMS saved successfully"}
+
+if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
 
