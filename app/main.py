@@ -131,6 +131,7 @@ def _refresh_transactions():
         parseMessages(email, messages)
         logging.info(f"Finished processing messages for email: {email}")
 
+
 @app.post("/sms")
 def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...)):
     save_sms(email, sms, sender)
@@ -138,4 +139,3 @@ def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
-

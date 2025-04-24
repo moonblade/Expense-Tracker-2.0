@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import { createTheme } from '@mui/material/styles';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+// import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -22,11 +22,11 @@ const NAVIGATION = [
     kind: 'header',
     title: 'Pages',
   },
-  {
-    segment: 'sendersui',
-    title: 'Senders',
-    icon: <AccountBalanceWalletIcon />,
-  },
+  // {
+  //   segment: 'sendersui',
+  //   title: 'Senders',
+  //   icon: <AccountBalanceWalletIcon />,
+  // },
   {
     segment: 'messagesui',
     title: 'Messages',
