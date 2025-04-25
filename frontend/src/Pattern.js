@@ -98,6 +98,7 @@ const [isTestPassed, setIsTestPassed] = useState(false);
       (pattern) =>
         pattern.name.toLowerCase().includes(query) ||
         pattern.sender.toLowerCase().includes(query) ||
+        pattern.createdBy.toLowerCase().includes(query) ||
         pattern.pattern.toLowerCase().includes(query)
     );
     setFilteredPatterns(updatedPatterns);
