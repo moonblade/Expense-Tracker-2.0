@@ -64,7 +64,8 @@ def update_senders(senders: List[Sender]):
         sender_collection.document(sender.name).set(sender.dict())
     get_senders.cache_clear()
 
-def upsert_pattern(pattern: Pattern):
+def upsert_pattern(pattern: Pattern, email: str = "") -> bool:
+    pattern.createdBy = email
     pattern_collection = db.collection("pattern")
     if pattern.id and pattern_collection.document(pattern.id).get().exists:
         pattern_collection.document(pattern.id).set(pattern.dict())

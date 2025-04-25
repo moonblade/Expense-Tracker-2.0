@@ -73,8 +73,8 @@ def patterns(email = Security(getEmail)):
     return {"patterns": patterns}
 
 @app.post("/patterns")
-def _upsert_pattern(pattern: Pattern):
-    success = upsert_pattern(pattern)
+def _upsert_pattern(pattern: Pattern, email = Security(getEmail)):
+    success = upsert_pattern(pattern, email)
     if not success:
         raise HTTPException(status_code=400, detail="Invalid pattern")
     return "ok"

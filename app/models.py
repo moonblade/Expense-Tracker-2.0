@@ -41,6 +41,7 @@ class Pattern(BaseModel):
     name: str = ""
     pattern: str = ""
     sender: str = ""
+    createdBy: str = ""
     metadata: Dict[str, str] = {}
     action: PatternAction = PatternAction.approve
 
