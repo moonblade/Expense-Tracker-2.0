@@ -5,7 +5,7 @@ from models import AddTransactionReasonRequest, CategorizeTransactionRequest, Ge
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages, extract_sms_details
-from db import get_emails, get_patterns, get_senders, get_transactions, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms
+from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -80,7 +80,9 @@ def _upsert_pattern(pattern: Pattern):
     return "ok"
 
 @app.delete("/patterns/{pattern_id}")
-def _delete_pattern(pattern_id: str = Path(..., description="The ID of the pattern to delete")):
+def _delete_pattern(pattern_id: str = Path(..., description="The ID of the pattern to delete"), email = Security(getEmail)):
+    if not is_admin(email):
+        raise HTTPException(status_code=403, detail="Not authorized to delete patterns")
     success = delete_pattern(pattern_id)
     if not success:
         raise HTTPException(status_code=404, detail="Pattern not found")

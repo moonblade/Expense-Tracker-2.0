@@ -193,6 +193,21 @@ def get_merchants():
         merchants[doc.id] = doc_dict
     return merchants
 
+@cache
+def get_user_details(email):
+    user_ref = db.collection("users").document(email)
+    user = user_ref.get()
+    if user.exists:
+        return user.to_dict()
+    return None
+
+@cache
+def is_admin(email):
+    user = get_user_details(email)
+    if user and user.get("role") == "admin":
+        return True
+    return False
+
 def delete_pattern(pattern_id: str) -> bool:
     pattern_collection = db.collection("pattern")
     pattern_ref = pattern_collection.document(pattern_id)
