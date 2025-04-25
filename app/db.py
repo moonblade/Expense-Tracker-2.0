@@ -208,13 +208,16 @@ def is_admin(email):
         return True
     return False
 
-def delete_pattern(pattern_id: str) -> bool:
-    pattern_collection = db.collection("pattern")
+def delete_pattern(email: str, pattern_id: str) -> bool:
+    if not is_admin(email):
+        return False
+
+    pattern_collection = db.collection("pattern").document(email).collection("patterns")
     pattern_ref = pattern_collection.document(pattern_id)
     
     if pattern_ref.get().exists:
         pattern_ref.delete()
-        get_patterns.cache_clear()
+        get_patterns.cache_clear(email)
         return True
     return False
 

@@ -19,10 +19,8 @@ import {
   ListItem,
   ListItemText,
   Divider,
-  ListItemButton,
   Container,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
@@ -77,9 +75,12 @@ const [isTestPassed, setIsTestPassed] = useState(false);
     if (sender && content) {
       setSelectedPattern({
         sender,
+        name: `pattern: ${sender}`,
         pattern: content,
         action: "approve",
-        metadata: {},
+        metadata: {
+          account: sender,
+        },
       });
       setOriginalContent(content);
       setIsDialogOpen(true);
@@ -124,37 +125,20 @@ const [isTestPassed, setIsTestPassed] = useState(false);
     }));
   };
 
-  const handleAddMetadata = () => {
-    setSelectedPattern((prev) => ({
-      ...prev,
-      metadata: { ...prev.metadata, "": "" },
-    }));
-  };
+  // const handleAddMetadata = () => {
+  //   setSelectedPattern((prev) => ({
+  //     ...prev,
+  //     metadata: { ...prev.metadata, "": "" },
+  //   }));
+  // };
 
-  const handleRemoveMetadata = (key) => {
-    setSelectedPattern((prev) => {
-      const newMetadata = { ...prev.metadata };
-      delete newMetadata[key];
-      return { ...prev, metadata: newMetadata };
-    });
-  };
-
-// You are an expert at regex, create a regex pattern to match the following string. Use .*? for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
-//
-// "amount" - amount spent or received
-// "merchant" - who or what the amount was spent on
-//
-// If existing, the following groups can also be added
-// "balance" - current balance
-// "date" - date of payment
-//
-// The output should only have the regex and nothing else.
-//
-// Input:
-//
-// {input}
-//
-// Output:
+  // const handleRemoveMetadata = (key) => {
+  //   setSelectedPattern((prev) => {
+  //     const newMetadata = { ...prev.metadata };
+  //     delete newMetadata[key];
+  //     return { ...prev, metadata: newMetadata };
+  //   });
+  // };
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -304,12 +288,39 @@ Output:`;
           <DialogTitle>{selectedPattern.name ? "Edit Pattern" : "Add Pattern"}</DialogTitle>
           <DialogContent>
             <TextField
-              label="Name"
+              label="Pattern Name"
               value={selectedPattern.name}
               onChange={(e) => handleFieldChange("name", e.target.value)}
               fullWidth
               margin="dense"
             />
+            <TextField
+              label="Account Name"
+              value={selectedPattern.metadata.account || ""}
+              onChange={(e) => handleMetadataChange("account", e.target.value)}
+              fullWidth
+              margin="dense"
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Action</InputLabel>
+              <Select
+                value={selectedPattern.action}
+                onChange={(e) => handleFieldChange("action", e.target.value)}
+              >
+                <MenuItem value="approve">Approve</MenuItem>
+                <MenuItem value="reject">Reject</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Transaction Type</InputLabel>
+              <Select
+                value={selectedPattern.metadata.transactiontype || "debit"}
+                onChange={(e) => handleMetadataChange("transactiontype", e.target.value)}
+              >
+                <MenuItem value="debit">Debit</MenuItem>
+                <MenuItem value="credit">Credit</MenuItem>
+              </Select>
+            </FormControl>
             <Box display="flex" alignItems="center">
               <TextField
                 label="Pattern"
@@ -331,66 +342,6 @@ Output:`;
                 }
               </Box>
             </Box>
-            <TextField
-              label="Sender"
-              value={selectedPattern.sender}
-              onChange={(e) => handleFieldChange("sender", e.target.value)}
-              fullWidth
-              margin="dense"
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Action</InputLabel>
-              <Select
-                value={selectedPattern.action}
-                onChange={(e) => handleFieldChange("action", e.target.value)}
-              >
-                <MenuItem value="approve">Approve</MenuItem>
-                <MenuItem value="reject">Reject</MenuItem>
-              </Select>
-            </FormControl>
-           <List disablePadding>
-              {Object.entries(selectedPattern.metadata || {}).map(
-                ([key, value], index) => (
-                  <ListItem
-                    disableGutters
-                    sx={{ paddingRight: 2, py: 0 }}
-                    key={index}
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => handleRemoveMetadata(key)}
-                      >
-                        <DeleteIcon fontSize="small"/>
-                      </IconButton>
-                    }
-                  >
-                    <TextField
-                      label="Key"
-                      value={key}
-                      onChange={(e) => {
-                        const newKey = e.target.value;
-                        handleRemoveMetadata(key);
-                        handleMetadataChange(newKey, value);
-                      }}
-                      fullWidth
-                      margin="dense"
-                    />
-                    <TextField
-                      label="Value"
-                      value={value}
-                      onChange={(e) => handleMetadataChange(key, e.target.value)}
-                      fullWidth
-                      margin="dense"
-                    />
-                  </ListItem>
-                )
-              )}
-            </List> 
-
-            <ListItemButton onClick={handleAddMetadata}>
-              <ListItemText primary="Add Metadata" />
-            </ListItemButton>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
