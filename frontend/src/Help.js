@@ -1,0 +1,145 @@
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import {
+  Box,
+  Container,
+} from "@mui/material";
+import LoginContext from "./LoginContext";
+
+const Help = () => {
+  const { user } = React.useContext(LoginContext);
+
+  const HELP_CONTENT = `
+
+# IMPORTANT NOTICE:
+This sends your sms to my system, since ios doesn't allow you to read sms easily.
+What this does is send all the sms that comes to your phone to this system.
+Then any patterns that are known are used to classify the sms as accepted, or rejected.
+The accepted messages would have an amount and a merchant where the money was sent to.
+
+## 📲 Expense Tracker iOS Setup Guide
+
+This guide will walk you through setting up the Expense Tracker on your iOS device using the **Shortcuts** app.
+After setup, your SMS messages will automatically be sent to the Expense Tracker backend for logging and analysis.
+
+You will need:
+- An iPhone with the **Shortcuts** app installed (default on iOS)
+
+---
+
+## 🚀 Step-by-Step Setup
+
+### 1. Open the Shortcuts App
+
+1. Open the built-in **Shortcuts** app on your iPhone.
+2. Navigate to the **Automation** tab at the bottom.
+3. Tap **+** in the top-right corner to create a new automation.
+
+---
+
+### 2. Create a New Automation
+
+1. Tap **Create Personal Automation**.
+2. Scroll down and choose **Message**.
+3. Under “When”, select:
+   - **Message Received From:** *Anyone*
+   - **Choose Filter:** Tap **Message**, and select **Contains**, then type a single letter like 'e'
+     > ⚠️ iOS does **not** currently allow triggering on *all* messages, so using a common letter like 'e' increases the chances of capturing most messages.
+
+4. Tap **Next**.
+
+---
+
+### 3. Add the Webhook Action
+
+1. Tap **Add Action**.
+2. Search for **Get Contents of URL** and select it.
+3. Configure the action as follows:
+   - **URL:** \`https://expense.moonblade.work/sms\`
+   - **Method:** \`POST\`
+   - **Request Body:** \`Json\`
+   - Tap **Add new field** three times and fill as follows:
+     - **Key:** \`sms\`  
+       **Value:** Tap **Variable** (magic wand), then **Select Variable** → choose **Message**
+     - **Key:** \`email\`  
+       **Value:** ${user.email || "Your gmail address"}
+     - **Key:** \`sender\`  
+       **Value:** Tap **Variable**, then choose **Sender**
+4. Tap **Next**.
+
+---
+
+### 4. Disable Confirmation
+
+1. Turn off **Ask Before Running**.
+2. Tap **Don’t Ask** to confirm.
+3. Tap **Done**.
+
+---
+
+## ✅ Verify the Setup
+
+1. Send someone 1rs on upi.
+4. Navigate to the **Messages** tab.
+5. You should see the sms with the 1 Rs transaction listed there.
+
+---
+
+## 📌 Notes
+
+- You can only set automations to trigger based on messages containing specific text. Using a common letter like 'e' helps ensure most transactional messages are captured.
+- This is a privacy-first tool: the data you send is only tied to your email and accessible via your login at the dashboard.
+- For best results, make sure your bank/UPI alerts contain identifiable amounts and senders.
+
+---
+
+## 🛠️ Troubleshooting
+
+- **Automation not triggering?** Make sure the test SMS includes the trigger letter ('e') and is received while the device is unlocked.
+- **Not seeing messages on the website?** Double-check that the correct **Gmail email address** is used in the 'email' field and that the automation is turned on.
+- **Using Dual SIM?** Ensure your transactional messages are received by the number configured on your iPhone.
+
+## 🧪 After Setup: Handling Unrecognized Messages
+
+Once your automation is running, some messages may appear in the **Messages** tab at [https://expense.moonblade.work](https://expense.moonblade.work) but are **not marked green (Accepted)**. These are messages that the system couldn’t automatically classify into a transaction.
+
+Follow these steps to help the system learn:
+
+### 🟡 Step 1: Open the Message
+
+- Tap on any unaccepted (not green) message.
+- This will open the **Pattern Editor** for that specific SMS.
+
+### ✨ Step 2: Generate a Pattern with AI
+
+- Tap the **sparkle icon (✨)** to use the built-in AI assistant to generate a **regex pattern** for the SMS.
+- Replace the existing message text with the AI-generated pattern.
+- Use the **copy button** in the chat to quickly copy the suggested pattern.
+
+### ✅ Step 3: Test the Pattern
+
+- Tap the **tick icon (✔️)** to test if the pattern works correctly.
+- If successful, you’ll see a preview with the **merchant name** and **account** extracted.
+- If it doesn't work, repeat the process or adjust the pattern manually.
+
+### 💾 Step 4: Save the Pattern
+
+- Once the test succeeds, click **Save**.
+- The pattern will now be applied automatically to similar messages in the future.
+
+> ⚠️ Note: **Credit transaction patterns are currently not supported**. Only debit messages can be added and tracked.
+
+
+  `;
+
+  return (
+    <Container>
+      <Box my={4}>
+        <ReactMarkdown>{HELP_CONTENT}</ReactMarkdown>
+      </Box>
+    </Container>
+  );
+};
+
+export default Help;
+

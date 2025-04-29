@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import { createTheme } from '@mui/material/styles';
 // import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import HelpIcon from '@mui/icons-material/Help';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { AppProvider } from '@toolpad/core/AppProvider';
@@ -13,6 +14,7 @@ import Senders from './Senders';
 import Messages from './Messages';
 import Pattern from './Pattern';
 import Transactions from './Transactions';
+import Help from './Help';
 import LoginContext from './LoginContext';
 import { AuthenticationContext, SessionContext } from '@toolpad/core/AppProvider';
 import SignIn from './SignIn';
@@ -21,6 +23,10 @@ const NAVIGATION = [
   {
     kind: 'header',
     title: 'Pages',
+  },
+  { "segment": "help", 
+    title: "Help", 
+    icon: <HelpIcon /> 
   },
   // {
   //   segment: 'sendersui',
@@ -75,6 +81,7 @@ function PageContent({ pathname }) {
       {pathname === '/patternsui' && <Pattern />}
       {pathname === '/messagesui' && <Messages />}
       {pathname === '/transactionsui' && <Transactions />}
+      {pathname === '/help' && <Help />}
     </Box>
   );
 }

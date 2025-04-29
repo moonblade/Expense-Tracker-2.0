@@ -21,6 +21,7 @@
     "moment": "^2.30.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "6",
     "react-scripts": "5.0.1",
     "react-swipeable-list": "^1.10.0",
