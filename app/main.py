@@ -44,6 +44,7 @@ def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -
 
 @app.get("/")
 @app.get("/transactionsui")
+@app.get("/help")
 @app.get("/patternsui")
 @app.get("/messagesui")
 @app.get("/sendersui")
