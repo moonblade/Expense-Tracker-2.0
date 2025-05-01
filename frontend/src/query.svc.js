@@ -273,6 +273,29 @@ export const addTransactionReason = async (transactionId, reason) => {
   }
 };
 
+export const addTransaction = async (transaction) => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/transactions/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(transaction),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add transaction");
+    }
+
+    return "ok";
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    throw error;
+  }
+};
+
 export const testPattern = async (content, regex) => {
   try {
     const idToken = await getIdToken();

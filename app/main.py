@@ -1,11 +1,11 @@
 import os
 from auth import validate_token
 from typing import List
-from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest
+from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest, Transaction
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages, extract_sms_details
-from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms
+from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -124,6 +124,11 @@ def _add_transaction_reason(request: AddTransactionReasonRequest, email = Securi
 def _categorize_transaction(request: CategorizeTransactionRequest, email = Security(getEmail)):
     categorize_transaction(request.transaction_id, request.category, email, manual=True)
     return "ok"
+
+@app.post("/transactions/add")
+def add_transaction(transaction: Transaction = Body(...), email = Security(getEmail)):
+    add_transactions_db(email, [transaction])
+    return {"status": "success", "message": "Transactions added successfully"}
 
 @app.post("/transaction/refresh")
 def _refresh_transactions():

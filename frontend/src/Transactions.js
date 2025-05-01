@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import AddIcon from "@mui/icons-material/Add"; // Import AddIcon for the button
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Box,
@@ -60,6 +61,7 @@ import {
 
 // Service functions for transactions
 import {
+    addTransaction,
   addTransactionReason,
   categorizeTransaction,
   fetchTransactions,
@@ -245,6 +247,12 @@ function Transactions() {
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false); // State for Add Transaction dialog
+  const [newTransaction, setNewTransaction] = useState({
+    amount: '',
+    merchant: '',
+    date: moment().toDate()
+  });
   const navigate = useNavigate();
 
   // Default date range: Current Month
@@ -412,6 +420,26 @@ function Transactions() {
     if (str) return str.charAt(0).toUpperCase() + str.slice(1);
     return str;
   };
+
+  const handleAddTransaction = async () => {
+    try {
+      // Call the addTransaction function from query.svc.js
+      await addTransaction({
+        ...newTransaction,
+        timestamp: moment().unix()
+      });
+      console.log("Transaction added successfully");
+      await handleRefreshTransactions(); // Refresh transactions after adding
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    } finally {
+      setAddDialogOpen(false);
+      setNewTransaction({
+        amount: '',
+        merchant: ''
+      });
+    }
+  }
 
   return (
     <Container>
@@ -694,6 +722,54 @@ function Transactions() {
           <DialogActions>
             <Button onClick={() => setReasonDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleReasonSubmit}>Submit</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Add Transaction Button */}
+        <Fab
+          color="secondary"
+          onClick={() => setAddDialogOpen(true)}
+          sx={{ position: "fixed", bottom: 80, right: 16 }}
+          aria-label="add"
+        >
+          <AddIcon />
+        </Fab>
+
+        {/* Add Transaction Dialog */}
+        <Dialog open={isAddDialogOpen} onClose={() => setAddDialogOpen(false)}>
+          <DialogTitle>Add New Transaction</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Amount"
+              type="number"
+              value={newTransaction.amount}
+              onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Reason"
+              value={newTransaction.merchant}
+              onChange={(e) => setNewTransaction({ ...newTransaction, merchant: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            {false && 
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <DatePicker
+                label="Date"
+                value={newTransaction.date}
+                onChange={(newValue) => setNewTransaction({ ...newTransaction, date: newValue })}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+            </LocalizationProvider>
+            }
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddTransaction}>Add</Button>
           </DialogActions>
         </Dialog>
 

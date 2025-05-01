@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import uuid
 
 class SenderStatus(str, Enum):
     approved = "approved"
@@ -63,9 +64,9 @@ class Category(str, Enum):
     entertainment = "entertainment"
 
 class Transaction(BaseModel):
-    id: str = ""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     amount: float = 0
-    account: str = ""
+    account: str = "Cash"
     timestamp: int = 0
     merchant: str = ""
     date: str = ""
