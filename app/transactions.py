@@ -37,8 +37,8 @@ def categorize_transaction(transaction_id: str, category: Category, email: str, 
     if not transaction:
         raise HTTPException(status_code=400, detail="Transaction not found")
     transaction.category = category
-    add_merchant(transaction.merchant, category)
     update_transaction(email, transaction.id, transaction)
+    add_merchant(transaction.merchant, category)
     return "ok"
 
 @measure_time

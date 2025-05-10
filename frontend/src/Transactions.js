@@ -319,13 +319,12 @@ function Transactions() {
     }
   };
 
-  const handleCategorize = () => {
-    if (selectedTransactions.length > 0) {
-      setCategoryDialogOpen(true);
-    } else {
-      console.log("No transactions selected for categorization");
-    }
-  };
+const handleCategorize = (transaction) => {
+  if (selectedTransactions.length === 0) {
+    setSelectedTransactions([transaction]);
+  }
+  setCategoryDialogOpen(true);
+};
 
   const handleReason = (transaction) => {
     setSelectedTransaction(transaction);
@@ -357,26 +356,35 @@ function Transactions() {
     setFilterCategory(filterCategory === category ? "all" : category);
   };
 
-  const handleCategorySelect = async (category) => {
-    if (selectedTransactions.length === 0) {
-      console.log("No transactions selected for categorization");
-      return;
+const handleCategorySelect = (category) => {
+  if (selectedTransactions.length === 0) {
+    console.log("No transactions selected for categorization");
+    return;
+  }
+  
+  // Optimistically update the category locally
+  const updatedTransactions = transactions.map(transaction => {
+    if (selectedTransactions.includes(transaction)) {
+      return { ...transaction, category };
     }
+    return transaction;
+  });
+  setTransactions(updatedTransactions);
+
+  // Attempt to categorize transactions via API
+  selectedTransactions.forEach(async (transaction) => {
     try {
-      for (const transaction of selectedTransactions) {
-        await categorizeTransaction(transaction.id, category);
-      }
-      await handleRefreshTransactions();
-      console.log(
-        `Transactions categorized as ${category}`
-      );
+      await categorizeTransaction(transaction.id, category);
     } catch (error) {
-      console.error("Error categorizing transactions:", error);
-    } finally {
-      setCategoryDialogOpen(false);
-      setSelectedTransactions([]);
+      console.error("Error categorizing transaction:", error);
+      // Show a toast or warning here
+      alert(`Failed to categorize transaction ${transaction.id}`);
     }
-  };
+  });
+
+  setCategoryDialogOpen(false);
+  setSelectedTransactions([]);
+};
 
   const handleReasonSubmit = async () => {
     try {
@@ -682,11 +690,11 @@ function Transactions() {
                       <DeleteOutlineIcon color="action" />
                     )}
                   </IconButton>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleCategorize(transaction)}
-                    title="Categorize"
-                  >
+<IconButton
+  edge="end"
+  onClick={() => handleCategorize(transaction)}
+  title="Categorize"
+>
                     <BookmarkBorderIcon color="action" />
                   </IconButton>
                   <IconButton
@@ -703,7 +711,10 @@ function Transactions() {
         </List>
 
         {/* Category Dialog */}
-        <Dialog open={isCategoryDialogOpen} onClose={() => setCategoryDialogOpen(false)}>
+          <Dialog open={isCategoryDialogOpen} onClose={() => {
+            setCategoryDialogOpen(false);
+            setSelectedTransactions([]);
+          }}>
           <DialogTitle>Select a Category</DialogTitle>
           <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
             {Object.keys(categoryIcons).map((key) => (

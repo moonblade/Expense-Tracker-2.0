@@ -239,6 +239,9 @@ def save_sms(email: str, sms: str, sender: str):
         logging.error(f"Error saving SMS for email: {email}: {e}")
 
 def add_merchant(merchant: str, category: Category):
-    merchant_collection = db.collection("merchant")
-    merchant_collection.document(merchant).set({"category": category.value}, merge=True)
-    get_merchants.cache_clear()
+    try:
+        merchant_collection = db.collection("merchant")
+        merchant_collection.document(merchant).set({"category": category.value}, merge=True)
+        get_merchants.cache_clear()
+    except Exception as e:
+        logging.error(f"Error adding merchant: {merchant}: {e}")
