@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import Checkbox from "@mui/material/Checkbox"; // Import Checkbox component
 import AddIcon from "@mui/icons-material/Add"; // Import AddIcon for the button
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+// import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Box,
   TextField,
@@ -244,6 +245,7 @@ function Transactions() {
   const [ignoreFilter, setIgnoreFilter] = useState("active");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedTransactions, setSelectedTransactions] = useState([]);
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -253,15 +255,15 @@ function Transactions() {
     merchant: '',
     date: moment().toDate()
   });
-  const navigate = useNavigate();
 
   // Default date range: Current Month
   const [fromDate, setFromDate] = useState(moment().startOf("month").toDate());
   const [toDate, setToDate] = useState(moment().endOf("month").toDate());
 
-  const handleTransactionClick = (transaction) => {
-    navigate(`/messagesui?id=${transaction.id}`);
-  };
+  // const navigate = useNavigate();
+  // const handleTransactionClick = (transaction) => {
+  //   navigate(`/messagesui?id=${transaction.id}`);
+  // };
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -317,9 +319,12 @@ function Transactions() {
     }
   };
 
-  const handleCategorize = (transaction) => {
-    setSelectedTransaction(transaction);
-    setCategoryDialogOpen(true);
+  const handleCategorize = () => {
+    if (selectedTransactions.length > 0) {
+      setCategoryDialogOpen(true);
+    } else {
+      console.log("No transactions selected for categorization");
+    }
   };
 
   const handleReason = (transaction) => {
@@ -353,21 +358,23 @@ function Transactions() {
   };
 
   const handleCategorySelect = async (category) => {
-    if (!selectedTransaction) {
-      console.log("No transaction selected for categorization");
+    if (selectedTransactions.length === 0) {
+      console.log("No transactions selected for categorization");
       return;
     }
     try {
-      await categorizeTransaction(selectedTransaction.id, category);
+      for (const transaction of selectedTransactions) {
+        await categorizeTransaction(transaction.id, category);
+      }
       await handleRefreshTransactions();
       console.log(
-        `Transaction ${selectedTransaction.id} categorized as ${category}`
+        `Transactions categorized as ${category}`
       );
     } catch (error) {
-      console.error("Error categorizing transaction:", error);
+      console.error("Error categorizing transactions:", error);
     } finally {
       setCategoryDialogOpen(false);
-      setSelectedTransaction(null);
+      setSelectedTransactions([]);
     }
   };
 
@@ -608,7 +615,17 @@ function Transactions() {
               }
             );
             return (
-              <ListItem key={transaction.id} divider onClick={() => handleTransactionClick(transaction)}>
+              <ListItem key={transaction.id} divider>
+                <Checkbox
+                  checked={selectedTransactions.includes(transaction)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedTransactions([...selectedTransactions, transaction]);
+                    } else {
+                      setSelectedTransactions(selectedTransactions.filter(t => t.id !== transaction.id));
+                    }
+                  }}
+                />
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
                     {IconElement}
