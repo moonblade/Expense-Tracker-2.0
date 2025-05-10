@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import CloseIcon from '@mui/icons-material/Close';
 import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
 
 function Pattern() {
@@ -185,15 +186,21 @@ Output:`;
     window.open(url, "_blank");
   };
 
-  const handleTestPattern = async () => {
+const handleTestPattern = async () => {
     try {
-      const result = await testPattern(originalContent, selectedPattern.pattern);
+      const trimmedPattern = selectedPattern.pattern.trim();
+      handleFieldChange("pattern", trimmedPattern);
+      const result = await testPattern(originalContent, trimmedPattern);
       setTestResult(result);
       setIsTestPassed(result.success);
       setTestResultDialogOpen(true);
     } catch (error) {
       console.error("Error testing pattern:", error);
     }
+  };
+
+  const handleClearPattern = () => {
+    handleFieldChange("pattern", "");
   };
 
   const handleSave = async () => {
@@ -336,11 +343,16 @@ Output:`;
                 <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
                   <AutoAwesomeIcon />
                 </IconButton>
-                { originalContent &&
-                <IconButton onClick={handleTestPattern} aria-label="generate pattern">
-                  <TaskAltIcon />
-                </IconButton>
-                }
+                {originalContent && (
+                  <>
+                    <IconButton onClick={handleTestPattern} aria-label="test pattern">
+                      <TaskAltIcon />
+                    </IconButton>
+                    <IconButton onClick={handleClearPattern} aria-label="clear pattern">
+                      <CloseIcon />
+                    </IconButton>
+                  </>
+                )}
               </Box>
             </Box>
           </DialogContent>
