@@ -306,17 +306,36 @@ function Transactions() {
     }
   };
 
-  const handleIgnore = async (transaction) => {
-    try {
-      if (transaction.ignore) {
-        await unignoreTransaction(transaction.id);
-      } else {
-        await ignoreTransaction(transaction.id);
-      }
-      handleRefreshTransactions();
-    } catch (error) {
-      console.error("Error updating transaction ignore status:", error);
+const handleIgnore = async (transaction) => {
+    let transactionsToDelete = selectedTransactions;
+    if (transactionsToDelete.length === 0) {
+      transactionsToDelete = [transaction];
     }
+    // Optimistically update the ignore status locally
+    const updatedTransactions = transactions.map(transaction => {
+      if (transactionsToDelete.includes(transaction)) {
+        return { ...transaction, ignore: !transaction.ignore };
+      }
+      return transaction;
+    });
+    setTransactions(updatedTransactions);
+
+    // Attempt to ignore/unignore transactions via API
+    transactionsToDelete.forEach(async (transaction) => {
+      try {
+        if (transaction.ignore) {
+          await unignoreTransaction(transaction.id);
+        } else {
+          await ignoreTransaction(transaction.id);
+        }
+      } catch (error) {
+        console.error("Error updating transaction ignore status:", error);
+        // Show a toast or warning here
+        alert(`Failed to update ignore status for transaction ${transaction.id}`);
+      }
+    });
+
+    setSelectedTransactions([]);
   };
 
 const handleCategorize = (transaction) => {
@@ -679,22 +698,24 @@ const handleCategorySelect = (category) => {
                   }
                 />
                 <ListItemSecondaryAction>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleIgnore(transaction)}
-                    title={transaction.ignore ? "Unignore" : "Ignore"}
-                  >
-                    {transaction.ignore ? (
-                      <RestoreIcon color="action" />
-                    ) : (
-                      <DeleteOutlineIcon color="action" />
-                    )}
-                  </IconButton>
-<IconButton
-  edge="end"
-  onClick={() => handleCategorize(transaction)}
-  title="Categorize"
->
+                <IconButton
+                  edge="end"
+                  onClick={() => {
+                    handleIgnore(transaction);
+                  }}
+                  title={transaction.ignore ? "Unignore" : "Ignore"}
+                >
+                  {transaction.ignore ? (
+                    <RestoreIcon color="action" />
+                  ) : (
+                    <DeleteOutlineIcon color="action" />
+                  )}
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  onClick={() => handleCategorize(transaction)}
+                  title="Categorize"
+                >
                     <BookmarkBorderIcon color="action" />
                   </IconButton>
                   <IconButton
