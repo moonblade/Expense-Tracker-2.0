@@ -43,9 +43,9 @@ const [isTestPassed, setIsTestPassed] = useState(false);
   
   const id = searchParams.get("id", null);
   let sender = searchParams.get("sender", null);
-  if (sender && sender.includes("-")) {
-    sender = sender.split("-").slice(1).join("-");
-  }
+if (sender && sender.includes("-")) {
+  sender = sender.split("-")[1];
+}
   const content = searchParams.get("content", null);
 
   const fetchAndSetPatterns = async () => {
