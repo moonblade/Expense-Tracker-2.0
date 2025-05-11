@@ -405,7 +405,17 @@ const handleCategorySelect = (category) => {
   setSelectedTransactions([]);
 };
 
-  const handleReasonSubmit = async () => {
+const handleReasonSubmit = async () => {
+    // Optimistically update the reason locally
+    const updatedTransactions = transactions.map(transaction => {
+      if (transaction.id === selectedTransaction.id) {
+        return { ...transaction, reason };
+      }
+      return transaction;
+    });
+    setTransactions(updatedTransactions);
+    setReasonDialogOpen(false);
+
     try {
       await addTransactionReason(selectedTransaction.id, reason);
       console.log(
@@ -414,8 +424,8 @@ const handleCategorySelect = (category) => {
       await handleRefreshTransactions();
     } catch (error) {
       console.error("Error updating transaction reason:", error);
+      alert(`Failed to update reason for transaction ${selectedTransaction.id}`);
     } finally {
-      setReasonDialogOpen(false);
       setSelectedTransaction(null);
       setReason("");
     }
