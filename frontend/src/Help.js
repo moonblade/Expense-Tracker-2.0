@@ -42,8 +42,7 @@ You will need:
 1. Tap **Create Personal Automation**.
 2. Scroll down and choose **Message**.
 3. Under “When”, select:
-   - **Message Received From:** *Anyone*
-   - **Choose Filter:** Tap **Message**, and select **Contains**, then type a single letter like 'e'
+   - **Message Contains:** then type a single letter like 'e'
      > ⚠️ iOS does **not** currently allow triggering on *all* messages, so using a common letter like 'e' increases the chances of capturing most messages.
 
 4. Tap **Next**.
@@ -52,25 +51,27 @@ You will need:
 
 ### 3. Add the Webhook Action
 
-1. Tap **Add Action**.
-2. Search for **Get Contents of URL** and select it.
-3. Configure the action as follows:
-   - **URL:** \`https://expense.moonblade.work/sms\`
+1. Tap **New blank automation**.
+2. Search for **Get Contents of URL** in search actions and select it.
+3. Configure the action as follows (Use > icon to expand):
+   - **URL:** Tap the URL and add the value \`https://expense.moonblade.work/sms\` in it
    - **Method:** \`POST\`
    - **Request Body:** \`Json\`
-   - Tap **Add new field** three times and fill as follows:
+   - Tap **Add new field** of type text, fill one of the following each time. Important: Keep everything small letters:
      - **Key:** \`sms\`  
-       **Value:** Tap **Variable** (magic wand), then **Select Variable** → choose **Message**
+       **Text:** Tap the text area, then select **Shortcut input from the top**. The click **shortcut input** again on the text area, then → choose **Message**
      - **Key:** \`email\`  
-       **Value:** ${user.email || "Your gmail address"}
+       **Text:** ${user.email || "Your gmail address"}
      - **Key:** \`sender\`  
-       **Value:** Tap **Variable**, then choose **Sender**
-4. Tap **Next**.
+       **Text:** Tap **Variable**, then choose **Sender**
+4. Tap **Done**.
+5. Done button might not close the window, thats fine, go back enough to list of automations.
 
 ---
 
 ### 4. Disable Confirmation
 
+1. Select the automation that you just made. In **automation**, Choose the option, \`Run Immediately\` instead of\`Run after confirmation\`
 1. Turn off **Ask Before Running**.
 2. Tap **Don’t Ask** to confirm.
 3. Tap **Done**.
