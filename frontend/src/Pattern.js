@@ -236,6 +236,26 @@ const handleTestPattern = async () => {
     }
   };
 
+  const handleBlockSender = async () => {
+    try {
+      const result = await testPattern(originalContent, ".*");
+      if (result.success) {
+        await updatePattern({
+          ...selectedPattern,
+          pattern: ".*",
+          action: "reject",
+        });
+        handleDialogClose();
+        fetchAndSetPatterns();
+      } else {
+        setSnackbarMessage("Failed to block sender. Test did not pass.");
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error("Error blocking sender:", error);
+    }
+  };
+
   return (
     <Container>
       <Typography variant="h5" gutterBottom>
@@ -360,6 +380,9 @@ const handleTestPattern = async () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
+            <Button onClick={handleBlockSender} color="warning">
+              Block Sender
+            </Button>
             <Button onClick={() => setIsDeleteDialogOpen(true)} color="secondary">
               Delete
             </Button>
