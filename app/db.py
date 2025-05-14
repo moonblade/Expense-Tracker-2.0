@@ -238,7 +238,7 @@ def delete_pattern(email: str, pattern_id: str) -> bool:
         return True
     return False
 
-def save_sms(email: str, sms: str, sender: str):
+def save_sms(email: str, sms: str, sender: str, id: str = ""):
     timestamp = int(time.time())
     entry = {
         "sms": sms,
@@ -248,8 +248,15 @@ def save_sms(email: str, sms: str, sender: str):
 
     try:
         sms_collection = db.collection("sms").document(email).collection("messages")
-        sms_doc = sms_collection.document()
-        sms_doc.set(entry)
+        if id:
+            sms_doc = sms_collection.document(id)
+            if sms_doc.get().exists:
+                sms_doc.set(entry, merge=True)
+            else:
+                sms_doc.set(entry)
+        else:
+            sms_doc = sms_collection.document()
+            sms_doc.set(entry)
         logging.info(f"SMS saved successfully for email: {email}")
     except Exception as e:
         logging.error(f"Error saving SMS for email: {email}: {e}")

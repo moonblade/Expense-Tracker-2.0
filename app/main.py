@@ -1,10 +1,11 @@
 import os
+from uuid import uuid4
 from auth import validate_token
 from typing import List
-from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Pattern, UpdateSendersRequest, Transaction
+from models import AddTransactionReasonRequest, CategorizeTransactionRequest, GetTransactionRequest, IgnoreTransactionRequest, Message, Pattern, UpdateSendersRequest, Transaction
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from parser import parseMessages, extract_sms_details
+from parser import parseMessages, extract_sms_details, executor
 from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -141,10 +142,12 @@ def _refresh_transactions():
         parseMessages(email, messages)
         logging.info(f"Finished processing messages for email: {email}")
 
-
 @app.post("/sms")
-def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...)):
-    save_sms(email, sms, sender)
+def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...), background_tasks: BackgroundTasks = None):
+    id = str(uuid4())
+    save_sms(email, sms, sender, id)
+    message = Message(sms=sms, sender=sender, timestamp=int(datetime.now().timestamp()), id=id)
+    parseMessages(email, [message], background_tasks)
     return {"status": "success", "message": "SMS saved successfully"}
 
 if __name__ == "__main__":

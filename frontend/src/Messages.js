@@ -63,12 +63,13 @@ function Messages() {
   };
 
   const fetchAndSetMessages = async (_adminMode = false) => {
-    const data = await fetchMessages(_adminMode);
+    const data = await fetchMessages(_adminMode || adminMode);
     setMessages(data.messages || []);
   };
 
   useEffect(() => {
     fetchAndSetMessages();
+    // eslint-disable-next-line
   }, [filterStatus]);
 
   useEffect(() => {
