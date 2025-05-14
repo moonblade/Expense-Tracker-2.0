@@ -29,6 +29,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import SyncIcon from "@mui/icons-material/Sync";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import RestoreIcon from "@mui/icons-material/Restore";
@@ -255,6 +256,7 @@ function Transactions() {
     merchant: '',
     date: moment().toDate()
   });
+  const [showCheckboxes, setShowCheckboxes] = useState(false); // State to manage checkbox visibility
 
   // Default date range: Current Month
   const [fromDate, setFromDate] = useState(moment().startOf("month").toDate());
@@ -588,15 +590,13 @@ const handleReasonSubmit = async () => {
                 fullWidth
               />
             </FormControl>
-            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-              <LocalizationProvider dateAdapter={AdapterMoment}>
-                <DateRangePicker
-                  fromDate={fromDate}
-                  toDate={toDate}
-                  setFromDate={setFromDate}
-                  setToDate={setToDate}
-                />
-              </LocalizationProvider>
+            <FormControl size="small">
+              <IconButton
+                onClick={() => setShowCheckboxes(!showCheckboxes)}
+                title="Toggle Checkboxes"
+              >
+                <ChecklistIcon />
+              </IconButton>
             </FormControl>
           </Box>
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
@@ -645,6 +645,16 @@ const handleReasonSubmit = async () => {
                 <MenuItem value="active">Active</MenuItem>
                 <MenuItem value="ignored">Ignored</MenuItem>
               </Select>
+            </FormControl> 
+            <FormControl size="small" sx={{ minWidth: 0 }}>
+              <LocalizationProvider dateAdapter={AdapterMoment}>
+                <DateRangePicker
+                  fromDate={fromDate}
+                  toDate={toDate}
+                  setFromDate={setFromDate}
+                  setToDate={setToDate}
+                />
+              </LocalizationProvider>
             </FormControl>
           </Box>
         </Stack>
@@ -663,16 +673,18 @@ const handleReasonSubmit = async () => {
             );
             return (
               <ListItem key={transaction.id} divider>
-                <Checkbox
-                  checked={selectedTransactions.includes(transaction)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedTransactions([...selectedTransactions, transaction]);
-                    } else {
-                      setSelectedTransactions(selectedTransactions.filter(t => t.id !== transaction.id));
-                    }
-                  }}
-                />
+                {showCheckboxes && (
+                  <Checkbox
+                    checked={selectedTransactions.includes(transaction)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedTransactions([...selectedTransactions, transaction]);
+                      } else {
+                        setSelectedTransactions(selectedTransactions.filter(t => t.id !== transaction.id));
+                      }
+                    }}
+                  />
+                )}
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
                     {IconElement}
