@@ -319,16 +319,18 @@ const handleTestPattern = async () => {
                 <MenuItem value="reject">Reject</MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Transaction Type</InputLabel>
-              <Select
-                value={selectedPattern.metadata.transactiontype || "debit"}
-                onChange={(e) => handleMetadataChange("transactiontype", e.target.value)}
-              >
-                <MenuItem value="debit">Debit</MenuItem>
-                <MenuItem value="credit">Credit</MenuItem>
-              </Select>
-            </FormControl>
+            {selectedPattern.action === "approve" && (
+              <FormControl fullWidth margin="dense">
+                <InputLabel>Transaction Type</InputLabel>
+                <Select
+                  value={selectedPattern.metadata.transactiontype || "debit"}
+                  onChange={(e) => handleMetadataChange("transactiontype", e.target.value)}
+                >
+                  <MenuItem value="debit">Debit</MenuItem>
+                  <MenuItem value="credit">Credit</MenuItem>
+                </Select>
+              </FormControl>
+            )}
             <Box display="flex" alignItems="center">
               <TextField
                 label="Pattern"
