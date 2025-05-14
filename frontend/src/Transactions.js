@@ -486,14 +486,24 @@ const handleReasonSubmit = async () => {
   }
 
   return (
-    <Container>
-      <Typography variant="h5">
+    <Container
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+      }}
+    >
+      <Typography variant="h5"
+        sx={{ flex: '0 0 auto' }}
+      >
         {filterCategory === "all"
           ? "Transactions"
           : capitalizeFirst(filterCategory)}{" "}
         - ₹{total.toLocaleString("en-IN")}
       </Typography>
-      <Grid container spacing={1}>
+      <Grid container spacing={1}
+        sx={{ flex: '0 0 auto' }}
+      >
         <Grid item xs={6}>
           <Box sx={{ width: "100%", height: { xs: 200, sm: 180 } }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -558,11 +568,8 @@ const handleReasonSubmit = async () => {
       </Grid>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          height: "calc(100vh - 150px)",
-          overflowY: "auto",
+          flex: '1 1 auto',
+          overflowY: 'auto',
         }}
       >
         {/* Search and Filter Section */}
@@ -592,6 +599,7 @@ const handleReasonSubmit = async () => {
             </FormControl>
           </Box>
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            { false &&
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Category</InputLabel>
               <Select
@@ -609,6 +617,7 @@ const handleReasonSubmit = async () => {
                   ))}
               </Select>
             </FormControl>
+            }
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Type</InputLabel>
               <Select
