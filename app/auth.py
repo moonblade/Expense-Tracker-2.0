@@ -11,6 +11,7 @@ except:
 def validate_token(id_token: str):
     try:
         decoded_token = auth.verify_id_token(id_token)
+        print(decoded_token)
         email = decoded_token.get("email", "")
         if not email:
             return False

@@ -58,8 +58,10 @@ def process_messages(email = Security(getEmail), background_tasks: BackgroundTas
     return {"status": "success", "message": "Messages processed successfully"}
 
 @app.get("/messages")
-def messages(email = Security(getEmail)):
-    messages = read_messages(email)
+def messages(email = Security(getEmail), admin_mode: bool = False):
+    if not is_admin(email):
+        admin_mode = False
+    messages = read_messages(email, admin_mode=admin_mode)
     messages = {"messages": [message.dict() for message in messages]}
     return messages
 

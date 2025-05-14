@@ -14,11 +14,15 @@ import {
   CircularProgress,
   Divider,
   Fab,
+  IconButton,
 } from "@mui/material";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { fetchMessages, processMessages } from "./query.svc";
 import SyncIcon from "@mui/icons-material/Sync";
 import ClearIcon from "@mui/icons-material/Clear";
+import SecurityIcon from '@mui/icons-material/Security';
+import ShieldIcon from '@mui/icons-material/Shield';
+import { useLogin } from "./LoginContext";
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
@@ -31,6 +35,7 @@ function Messages() {
   const [filterStatus, setFilterStatus] = useState(localStorage.getItem(FILTER_STATUS_KEY) || "all");
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState(searchParams.get("id") || null);
+  const { isAdmin, setAdminMode, adminMode } = useLogin()
 
   useEffect(() => {
     setSelectedMessageId(searchParams.get("id") || null);
@@ -57,8 +62,8 @@ function Messages() {
     }
   };
 
-  const fetchAndSetMessages = async () => {
-    const data = await fetchMessages();
+  const fetchAndSetMessages = async (_adminMode = false) => {
+    const data = await fetchMessages(_adminMode);
     setMessages(data.messages || []);
   };
 
@@ -122,13 +127,19 @@ function Messages() {
     }
   };
 
+  const handleAdminMode = () => {
+    fetchAndSetMessages(!adminMode);
+    setAdminMode(!adminMode);
+  }
+
   return (
     <Container>
       <Typography variant="h5" gutterBottom>
         Messages
       </Typography>
 
-      <FormControl size="small" fullWidth sx={{mb:2}}>
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}> {/* Box for layout */}
+      <FormControl size="small" sx={{mb:2, flex: 1}}>
         <TextField
           variant="outlined"
           size="small"
@@ -150,6 +161,17 @@ function Messages() {
           }}
         />
       </FormControl>
+      { isAdmin && (
+      <FormControl size="small" sx={{ minWidth: 0}}>
+        <IconButton
+          onClick={() => handleAdminMode()}
+          title="Toggle Checkboxes"
+        >
+          {adminMode ? <ShieldIcon /> : <SecurityIcon />}
+        </IconButton>
+      </FormControl>
+      )}
+      </Box>
 
       <FormControl size="small" fullWidth sx={{mb:2}}>
         <InputLabel>Filter Status</InputLabel>

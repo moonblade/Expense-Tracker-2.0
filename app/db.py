@@ -11,20 +11,36 @@ from utils import measure_time
 
 db = firestore.client()
 
-def read_messages(email, days_ago_start=30):
-    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago_start)
-    start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+def read_messages(email, days_ago_start=30, admin_mode=False):
+    start_date = datetime.datetime.now() - datetime.timedelta(days=days_ago_start)
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
     start_timestamp = int(start_date.timestamp())
 
-    sms_collection = db.collection("sms").document(email).collection("messages")
-    filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
-    query = sms_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
-
     messages = []
-    for doc in query:
-        doc_dict = doc.to_dict()
-        doc_dict["id"] = doc.id
-        messages.append(Message(**doc_dict))
+
+    if admin_mode:
+        # If admin_mode is True, iterate through all emails in the "sms" collection
+        sms_collection = db.collection("sms")
+        all_emails = sms_collection.stream()
+        for email_doc in all_emails:
+            email_id = email_doc.id
+            email_collection = sms_collection.document(email_id).collection("messages")
+            filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
+            query = email_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+            for doc in query:
+                doc_dict = doc.to_dict()
+                doc_dict["id"] = doc.id
+                messages.append(Message(**doc_dict))
+    else:
+        # If admin_mode is False, only get messages for the specified email
+        sms_collection = db.collection("sms").document(email).collection("messages")
+        filter_condition = FieldFilter("timestamp", ">=", start_timestamp)
+        query = sms_collection.where(filter=filter_condition).order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+
+        for doc in query:
+            doc_dict = doc.to_dict()
+            doc_dict["id"] = doc.id
+            messages.append(Message(**doc_dict))
 
     return messages
 

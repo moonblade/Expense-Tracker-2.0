@@ -26,10 +26,15 @@ export function useLogin() {
 
 export function LoginProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user.photoURL && user.photoURL.includes("ccoGy7MQcuytJDuHQy7q4rMnt_J0zH")) {
+        setIsAdmin(true);
+      }
     });
     return unsubscribe;
   }, []);
@@ -49,7 +54,7 @@ export function LoginProvider({ children }) {
   };
 
   return (
-    <LoginContext.Provider value={{ user, login, logout, getIdToken }}>
+    <LoginContext.Provider value={{ user, login, logout, getIdToken, isAdmin, adminMode, setAdminMode }}>
       {children}
     </LoginContext.Provider>
   );

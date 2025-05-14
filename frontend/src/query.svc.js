@@ -68,10 +68,10 @@ export const updateSenderStatus = async (name, status) => {
   }
 };
 
-export const fetchMessages = async () => {
+export const fetchMessages = async (adminMode) => {
   try {
     const idToken = await getIdToken();
-    const response = await fetch(`${API_BASE_URL}/messages`, {
+    const response = await fetch(`${API_BASE_URL}/messages?admin_mode=${adminMode}`, {
       headers: {
         Authorization: `Bearer ${idToken}`,
       },
