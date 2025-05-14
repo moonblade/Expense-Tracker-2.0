@@ -490,7 +490,8 @@ const handleReasonSubmit = async () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        // height: '100%',
+        height: "calc(100vh - 120px)",
       }}
     >
       <Typography variant="h5"
