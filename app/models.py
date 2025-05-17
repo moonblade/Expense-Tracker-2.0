@@ -104,3 +104,13 @@ class CategorizeTransactionRequest(BaseModel):
 class GetTransactionRequest(BaseModel):
     from_date: int = 0
     to_date: int = 0
+
+    def normalise(self, ts):
+        # If timestamp is in milliseconds, convert to seconds
+        return ts // 1000 if ts > 1e10 else ts
+
+    def get_from_date(self):
+        return self.normalise(self.from_date)
+
+    def get_to_date(self):
+        return self.normalise(self.to_date)

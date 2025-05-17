@@ -32,6 +32,7 @@ def add_transaction_reason(request: AddTransactionReasonRequest, email: str, man
     update_transaction(email, transaction.id, transaction)
     return "ok"
 
+@measure_time
 def categorize_transaction(transaction_id: str, category: Category, email: str, manual = False) -> str:
     transaction = get_transaction_uncached(email, transaction_id) if manual else get_transaction(email, transaction_id)
     if not transaction:

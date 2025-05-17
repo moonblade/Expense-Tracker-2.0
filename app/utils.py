@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+from datetime import datetime, timedelta
 
 
 def getScriptDir():
@@ -38,3 +39,23 @@ def measure_time(func):
         return result
     return wrapper
 
+def get_start_and_end_of_month():
+    # Get current date
+    now = datetime.now()
+
+    # Start of the month
+    start_of_month = datetime(now.year, now.month, 1)
+
+    # To get end of month: go to 1st of next month, subtract 1 second
+    if now.month == 12:
+        next_month = datetime(now.year + 1, 1, 1)
+    else:
+        next_month = datetime(now.year, now.month + 1, 1)
+
+    end_of_month = next_month - timedelta(seconds=1)
+
+    # Convert to epoch
+    start_epoch = int(start_of_month.timestamp())
+    end_epoch = int(end_of_month.timestamp())
+
+    return start_epoch, end_epoch

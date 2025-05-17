@@ -6,8 +6,9 @@ import datetime
 from functools import cache
 import time
 import logging
+import threading
 
-from utils import measure_time
+from utils import get_start_and_end_of_month, measure_time
 
 db = firestore.client()
 
@@ -147,11 +148,24 @@ def add_transactions_db(email: str, transactions: List[Transaction]):
 
     try:
         batch.commit()
+        get_transactions.cache_clear()
+        populate_get_transactions_cache_thread(email)
         return True
     except Exception as e:
         print(f"Error updating transactions: {e}")
         return False
 
+def populate_get_transactions_cache_thread(email):
+    thread = threading.Thread(target=populate_get_transactions_cache, args=(email,))
+    thread.start()
+
+def populate_get_transactions_cache(email):
+    logging.warn(f"Populating cache for transactions for email: {email}")
+    start_date, end_date = get_start_and_end_of_month()
+    logging.warn(f"Start date: {start_date}, End date: {end_date}")
+    _ = get_transactions(email, start_date, end_date)
+
+@cache
 def get_transactions(email, from_date=None, to_date=None):
     transaction_collection = db.collection("transaction").document(email).collection("transaction")
     query = transaction_collection.order_by("timestamp", direction=firestore.Query.DESCENDING)
@@ -160,14 +174,12 @@ def get_transactions(email, from_date=None, to_date=None):
         if len(str(from_date)) == 13:
             from_date /= 1000 
         from_date_dt = datetime.datetime.utcfromtimestamp(from_date)
-        print(from_date_dt)
         query = query.where(filter=FieldFilter("timestamp", ">=", int(from_date_dt.timestamp())))
 
     if to_date is not None and to_date != 0:
         if len(str(to_date)) == 13:
             to_date /= 1000
         to_date_dt = datetime.datetime.utcfromtimestamp(to_date)
-        print(to_date_dt)
         query = query.where(filter=FieldFilter("timestamp", "<=", int(to_date_dt.timestamp())))
 
     query_stream = query.stream()
@@ -179,6 +191,7 @@ def get_transactions(email, from_date=None, to_date=None):
 
     return transactions
 
+@cache
 def get_transaction_uncached(email, transaction_id):
     transaction = get_transaction(email, transaction_id)
     if transaction:
@@ -199,6 +212,8 @@ def update_transaction(email, transaction_id, transaction):
     transaction_ref = db.collection("transaction").document(email).collection("transaction").document(transaction_id)
     transaction_ref.set(transaction.dict(), merge=True)
     get_transaction.cache_clear()
+    get_transactions.cache_clear()
+    populate_get_transactions_cache_thread(email)
 
 @cache
 def get_merchants():
@@ -261,6 +276,7 @@ def save_sms(email: str, sms: str, sender: str, id: str = ""):
     except Exception as e:
         logging.error(f"Error saving SMS for email: {email}: {e}")
 
+@measure_time
 def add_merchant(merchant: str, category: Category):
     try:
         merchant_collection = db.collection("merchant")

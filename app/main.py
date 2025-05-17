@@ -105,7 +105,7 @@ def _get_senders(email = Security(getEmail)):
 
 @app.get("/transactions")
 def _get_transactions(email = Security(getEmail), transactionRequest: GetTransactionRequest = Depends()):
-    transactions = get_transactions(email, transactionRequest.from_date, transactionRequest.to_date)
+    transactions = get_transactions(email, transactionRequest.get_from_date(), transactionRequest.get_to_date())
     return {"transactions": transactions}
 
 @app.post("/transaction/ignore")
