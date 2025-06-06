@@ -59,6 +59,8 @@ def checkMailForTransaction(transaction: Transaction):
                 subjectJson = mail.parseSubject(r"Sent\s+₹\s*(?P<amount>\d+)\s+to\s+(?P<merchant>.+)")
                 amount = subjectJson.get("amount", 0)
                 if amount:
+                    # Remove anything but digits and comma and dot from amount
+                    amount = re.sub(r"[^\d,.]", "", amount)
                     amount = int(amount)
                     if amount != transaction.amount:
                         logging.info(f"Amount mismatch, expected {transaction.amount}, got {amount}")
