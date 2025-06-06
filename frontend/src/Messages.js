@@ -15,14 +15,16 @@ import {
   Divider,
   Fab,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { fetchMessages, processMessages } from "./query.svc";
+import { fetchMessages, processMessages, unprocessSms } from "./query.svc";
 import SyncIcon from "@mui/icons-material/Sync";
 import ClearIcon from "@mui/icons-material/Clear";
 import SecurityIcon from '@mui/icons-material/Security';
 import ShieldIcon from '@mui/icons-material/Shield';
 import { useLogin } from "./LoginContext";
+import ReplayIcon from "@mui/icons-material/Replay";
 
 const FILTER_STATUS_KEY = "messages_filterStatus";
 
@@ -54,8 +56,8 @@ function Messages() {
       navigate(`/patternsui?id=${encodeURIComponent(msg.matchedPattern)}`);
     } else if (msg.status !== "unprocessed") {
       // If status is not "unprocessed", navigate to /senders page with sender's last part
-      const senderId = msg.sender.split("-").pop(); // get the last part after the last dash
-      navigate(`/sendersui?search=${senderId}`);
+      // const senderId = msg.sender.split("-").pop(); // get the last part after the last dash
+      // navigate(`/sendersui?search=${senderId}`);
     } else if (msg.status === "unprocessed") {
       // If status is "unprocessed", navigate to /patterns page
       navigate(`/patternsui?sender=${encodeURIComponent(msg.sender)}&content=${encodeURIComponent(msg.sms)}`);
@@ -132,6 +134,19 @@ function Messages() {
     fetchAndSetMessages(!adminMode);
     setAdminMode(!adminMode);
   }
+
+  const handleUnprocessMessage = async (msgId) => {
+    try {
+      const result = await unprocessSms(msgId);
+      if (result.status === "success") {
+        fetchAndSetMessages();
+      } else {
+        console.error("Failed to unprocess message:", result.error);
+      }
+    } catch (error) {
+      console.error("Error unprocessing message:", error);
+    }
+  };
 
   return (
     <Container>
@@ -232,6 +247,17 @@ function Messages() {
                       color: "textSecondary",
                     }}
                   />
+                  <Tooltip title="Unprocess Message">
+                    <IconButton
+                      edge="end"
+                      onClick={(event) => {
+                        event.stopPropagation(); // Prevent handleMessageClick from being called
+                        handleUnprocessMessage(msg.id);
+                      }}
+                    >
+                      <ReplayIcon />
+                    </IconButton>
+                  </Tooltip>
                 </ListItem>
                 <Divider />
               </React.Fragment>

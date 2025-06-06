@@ -6,7 +6,7 @@ from models import AddTransactionReasonRequest, CategorizeTransactionRequest, Ge
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages, extract_sms_details, executor
-from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
+from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, unprocess_message, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -141,6 +141,12 @@ def _refresh_transactions():
         messages = read_messages(email, 1)
         parseMessages(email, messages)
         logging.info(f"Finished processing messages for email: {email}")
+
+@app.post("/sms/unprocess")
+def unprocess_sms(email = Security(getEmail), sms_id= Body(..., embed=True)):
+    logging.info(f"Unprocessing SMS with ID: {sms_id} for email: {email}")
+    unprocess_message(email, sms_id)
+    return {"status": "success", "message": "Message unprocessed successfully"}
 
 @app.post("/sms")
 def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(...), sender: str = Body(...), background_tasks: BackgroundTasks = None):

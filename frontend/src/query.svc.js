@@ -319,3 +319,26 @@ export const testPattern = async (content, regex) => {
     return { success: false, details: error.message };
   }
 };
+
+ export const unprocessSms = async (smsId) => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/sms/unprocess`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ sms_id: smsId }),
+    });
+
+    if (!response.status === 200) {
+      throw new Error("Failed to unprocess SMS");
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error unprocessing SMS:", error);
+    throw error;
+  }
+}

@@ -134,6 +134,11 @@ def update_message_status(email: str, messages: List[Message]):
     except Exception as e:
         print(f"Error updating message statuses: {e}")
 
+def unprocess_message(email: str, message_id: str):
+    sms_doc_ref = db.collection("sms").document(email).collection("messages").document(message_id)
+    sms_doc_ref.set({"status": MessageStatus.unprocessed.value, "matchedPattern": ""}, merge=True)
+    return True
+
 def add_transactions_db(email: str, transactions: List[Transaction]):
     if not transactions:
         return False
