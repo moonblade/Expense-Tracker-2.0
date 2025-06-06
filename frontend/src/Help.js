@@ -111,19 +111,27 @@ Follow these steps to help the system learn:
 - Tap on any unaccepted (not green) message.
 - This will open the **Pattern Editor** for that specific SMS.
 
-### ✨ Step 2: Generate a Pattern with AI
+### ✨ Step 2: Select Approve or Reject
 
-- Tap the **sparkle icon (✨)** to use the built-in AI assistant to generate a **regex pattern** for the SMS.
-- Replace the existing message text with the AI-generated pattern.
-- Use the **copy button** in the chat to quickly copy the suggested pattern.
+- For messages that have a payment amount, tap the **Approve** button.
+- If the message is not a valid transaction, tap **Reject**.
 
-### ✅ Step 3: Test the Pattern
+### ✅ Step 3: For approval
 
-- Tap the **tick icon (✔️)** to test if the pattern works correctly.
-- If successful, you’ll see a preview with the **merchant name** and **account** extracted.
-- If it doesn't work, repeat the process or adjust the pattern manually.
+- Tap the amount in the message to select it.
+- Tap Payee button.
+- Tap the payee in the message to select it.
 
-### 💾 Step 4: Save the Pattern
+### 🛠️ Step 4: For approval and Rejection
+
+- Tap Wildcard
+- Tap all parts of the message that will change every message, so that the pattern is generic
+
+### 🧪 Step 5: Test the Pattern
+
+- Tap the Tick icon to test the pattern.
+
+### 💾 Step 6: Save the Pattern
 
 - Once the test succeeds, click **Save**.
 - The pattern will now be applied automatically to similar messages in the future.
