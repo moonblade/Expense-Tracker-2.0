@@ -25,6 +25,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
+import PatternCreator from './PatternCreator';
 
 function Pattern() {
   const [searchParams] = useSearchParams();
@@ -181,9 +182,10 @@ Output:`;
   };
 
   const handleGeneratePattern = () => {
-    const question = generateQuestion(selectedPattern.pattern || "", selectedPattern.action || "");
-    const url = `https://chatgpt.com?q=${encodeURIComponent(question)}`;
-    window.open(url, "_blank");
+    setIsDialogOpen(false);
+    setTimeout(() => {
+      setIsDialogOpen(true);
+    }, 0);
   };
 
 const handleTestPattern = async () => {
@@ -352,30 +354,19 @@ const handleTestPattern = async () => {
               </FormControl>
             )}
             <Box display="flex" alignItems="center">
-              <TextField
-                label="Pattern"
-                value={selectedPattern.pattern}
-                onChange={(e) => handleFieldChange("pattern", e.target.value)}
-                fullWidth
-                margin="dense"
-                multiline
-                rows={3}
-              />
-              <Box display="flex" flexDirection="column">
-                <IconButton onClick={handleGeneratePattern} aria-label="generate pattern">
-                  <AutoAwesomeIcon />
-                </IconButton>
-                {originalContent && (
-                  <>
-                    <IconButton onClick={handleTestPattern} aria-label="test pattern">
-                      <TaskAltIcon />
-                    </IconButton>
-                    <IconButton onClick={handleClearPattern} aria-label="clear pattern">
-                      <CloseIcon />
-                    </IconButton>
-                  </>
-                )}
-              </Box>
+            <PatternCreator
+              input={originalContent}
+              approve={selectedPattern.action === "approve"}
+              updatePattern={(pattern) => handleFieldChange("pattern", pattern)}
+            />
+            <Box display="flex" flexDirection="column">
+              <IconButton onClick={handleTestPattern} aria-label="test pattern">
+                <TaskAltIcon />
+              </IconButton>
+              <IconButton onClick={handleClearPattern} aria-label="clear pattern">
+                <CloseIcon />
+              </IconButton>
+            </Box>
             </Box>
           </DialogContent>
           <DialogActions>
