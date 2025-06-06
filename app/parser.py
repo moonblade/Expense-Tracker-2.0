@@ -116,6 +116,9 @@ def parseMessage(message: Message):
             success, details = extract_sms_details(pattern.pattern, message.sms)
             if success:
                 if pattern.action == PatternAction.approve:
+                    if details["amount"]:
+                        # Remove anything other than digits, and decimal points from amount
+                        details["amount"] = re.sub(r"[^\d,.]", "", details["amount"])
                     return True, MessageStatus.matched, pattern, details
                 else:
                     return True, MessageStatus.rejected, pattern, None
