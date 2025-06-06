@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
-  IconButton,
+  // IconButton,
   TextField,
   Dialog,
   DialogTitle,
@@ -21,9 +21,6 @@ import {
   Divider,
   Container,
 } from "@mui/material";
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import CloseIcon from '@mui/icons-material/Close';
 import { fetchPatterns, updatePattern, deletePattern, testPattern } from "./query.svc";
 import PatternCreator from './PatternCreator';
 
@@ -40,7 +37,6 @@ function Pattern() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [testResultDialogOpen, setTestResultDialogOpen] = useState(false);
 const [testResult, setTestResult] = useState({ success: false, details: {} });
-const [isTestPassed, setIsTestPassed] = useState(false);
   
   const id = searchParams.get("id", null);
   let sender = searchParams.get("sender", null);
@@ -118,7 +114,6 @@ if (sender && sender.includes("-")) {
 
   const handleFieldChange = (field, value) => {
     setSelectedPattern((prev) => ({ ...prev, [field]: value }));
-    setIsTestPassed(false);
   };
 
   const handleMetadataChange = (key, value) => {
@@ -158,60 +153,51 @@ if (sender && sender.includes("-")) {
     }
   };
 
-  const generateQuestion = (patternContent, action) => {
-    return `You are an expert at regex, create a regex pattern to match the following string. Use .*? (dot star question mark) for any groups required, do not use complex regex patterns. Any parts that might change needs to use .*? pattern. The following groups should be definitely added in the regex
-
-${action === "approve" ? `
-This is a pattern for a payment transaction. The following groups should be definitely added in the regex:
-
-  "amount" - amount spent or received
-  "merchant" - who or what the amount was spent on
-` : `
-This is a pattern of rejecting messages that are not related to payments. So the regex should be simple enough to not get caught in technical issues.
-So any number and link should be replaced with .*?
-`}
-
-The output should only have the regex and nothing else.
-Do not add a backtick in the answer. only add the regex.
-
-Input:
-
-${patternContent}
-
-Output:`;
-  };
-
-  const handleGeneratePattern = () => {
-    setIsDialogOpen(false);
-    setTimeout(() => {
-      setIsDialogOpen(true);
-    }, 0);
-  };
-
 const handleTestPattern = async () => {
     try {
       const trimmedPattern = selectedPattern.pattern.trim();
       handleFieldChange("pattern", trimmedPattern);
+      let testPassed = false;
       const result = await testPattern(originalContent, trimmedPattern);
       setTestResult(result);
-      setIsTestPassed(result.success);
-      setTestResultDialogOpen(true);
+      testPassed = result.success;
+      if (selectedPattern.action === "approve") {
+        if (result.success && result.details.amount && result.details.merchant) {
+          setSnackbarMessage("Test passed, amount: " + result.details.amount + " merchant: " + result.details.merchant);
+          testPassed = true;
+        } else {
+          testPassed = false;
+          if (!result.details.amount) {
+            setSnackbarMessage("Test failed: Pattern must capture amount for approval.");
+          }
+          else if (!result.details.merchant) {
+            setSnackbarMessage("Test failed: Pattern must capture payee for approval.");
+          }
+          else {
+            setSnackbarMessage("Test failed: " + result.details.error);
+          }
+        }
+      } else {
+        testPassed = result.success;
+        if (result.success) {
+          setSnackbarMessage("Test passed");
+        }
+      }
+      setSnackbarOpen(true);
+      return testPassed;
     } catch (error) {
-      console.error("Error testing pattern:", error);
+      setSnackbarMessage("Error testing pattern: " + error.message);
+      setSnackbarOpen(true);
+      return false;
     }
   };
 
-  const handleClearPattern = () => {
-    handleFieldChange("pattern", "");
-  };
-
   const handleSave = async () => {
+    const isTestPassed = await handleTestPattern();
     const pattern = selectedPattern.pattern || "";
     const action = selectedPattern.action || "";
 
     if (originalContent && !isTestPassed) {
-      setSnackbarMessage("Please test the pattern and ensure it passes before saving.");
-      setSnackbarOpen(true);
       return;
     }
 
@@ -238,25 +224,25 @@ const handleTestPattern = async () => {
     }
   };
 
-  const handleBlockSender = async () => {
-    try {
-      const result = await testPattern(originalContent, ".*");
-      if (result.success) {
-        await updatePattern({
-          ...selectedPattern,
-          pattern: ".*",
-          action: "reject",
-        });
-        handleDialogClose();
-        fetchAndSetPatterns();
-      } else {
-        setSnackbarMessage("Failed to block sender. Test did not pass.");
-        setSnackbarOpen(true);
-      }
-    } catch (error) {
-      console.error("Error blocking sender:", error);
-    }
-  };
+  // const handleBlockSender = async () => {
+  //   try {
+  //     const result = await testPattern(originalContent, ".*");
+  //     if (result.success) {
+  //       await updatePattern({
+  //         ...selectedPattern,
+  //         pattern: ".*",
+  //         action: "reject",
+  //       });
+  //       handleDialogClose();
+  //       fetchAndSetPatterns();
+  //     } else {
+  //       setSnackbarMessage("Failed to block sender. Test did not pass.");
+  //       setSnackbarOpen(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error blocking sender:", error);
+  //   }
+  // };
 
   return (
     <Container>
@@ -358,22 +344,12 @@ const handleTestPattern = async () => {
               input={originalContent}
               approve={selectedPattern.action === "approve"}
               updatePattern={(pattern) => handleFieldChange("pattern", pattern)}
+              handleTestPattern={handleTestPattern}
             />
-            <Box display="flex" flexDirection="column">
-              <IconButton onClick={handleTestPattern} aria-label="test pattern">
-                <TaskAltIcon />
-              </IconButton>
-              <IconButton onClick={handleClearPattern} aria-label="clear pattern">
-                <CloseIcon />
-              </IconButton>
-            </Box>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleDialogClose}>Cancel</Button>
-            <Button onClick={handleBlockSender} color="warning">
-              Block Sender
-            </Button>
             <Button onClick={() => setIsDeleteDialogOpen(true)} color="secondary">
               Delete
             </Button>

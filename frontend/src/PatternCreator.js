@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 
 function escapeRegex(str) {
   return str.replace(/[-[\]{}()*+?.,\\^$|#]/g, '\\$&');
@@ -29,16 +30,16 @@ function TokenSelector({ tokens, onSelect }) {
   );
 }
 
-export default function PatternCreator({input, approve, updatePattern}) {
+export default function PatternCreator({input, approve, updatePattern, handleTestPattern}) {
   const [step, setStep] = useState('amount');
 
   const tokenize = (str) => {
-    const regex = /[^\s,.\-]+|[\s,.\-]/g;
+    const regex = /[^\s-]+|[\s-]/g;
     const matches = str.match(regex) || [];
 
     return matches.map((t) => ({
       text: t,
-      type: /[\s,.\-]/.test(t) ? /[\s]/.test(t) ? 'space' : 'delim' : 'static',
+      type: /[\s-]/.test(t) ? /[\s]/.test(t) ? 'space' : 'delim' : 'static',
     }));
   };
 
@@ -68,8 +69,8 @@ export default function PatternCreator({input, approve, updatePattern}) {
     }
 
     else if (currentType === 'merchant') {
-      const isMerchant = (i) => newTokens[i] && newTokens[i].type === 'merchant';
-      const isSpace = (i) => newTokens[i] && newTokens[i].type === 'space';
+      // const isMerchant = (i) => newTokens[i] && newTokens[i].type === 'merchant';
+      // const isSpace = (i) => newTokens[i] && newTokens[i].type === 'space';
 
       // Find all merchant indices
       const merchantIndices = newTokens.map((t, i) => t.type === 'merchant' ? i : -1).filter(i => i !== -1);
@@ -111,16 +112,6 @@ export default function PatternCreator({input, approve, updatePattern}) {
     updatePattern(buildRegex(newTokens));
   };
 
-  const handleNextStep = () => {
-    if (step === 'amount') setStep('merchant');
-    else if (step === 'merchant') setStep('wildcards');
-  };
-
-  const previousStep = () => {
-    if (step === 'merchant') setStep('amount');
-    else if (step === 'wildcards') setStep('merchant');
-  }
-
   const buildRegex = (tokens) => {
     const grouped = groupTokensByType(tokens);
     return grouped
@@ -137,74 +128,70 @@ export default function PatternCreator({input, approve, updatePattern}) {
     const result = [];
     let currentGroup = { text: '', type: null };
 
-    for (const token of tokens) {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
+      // Skip space and delim in grouping logic
+      if (token.type === 'space' || token.type === 'delim') {
+        // But remember it for potential joining
+        currentGroup.separator = token.text;
+        continue;
+      }
+
       if (token.type === currentGroup.type) {
-        currentGroup.text += ' ' + token.text;
+        currentGroup.text += (currentGroup.separator || '') + token.text;
       } else {
-        if (currentGroup.type !== null) result.push({ ...currentGroup });
-        currentGroup = { text: token.text, type: token.type };
+        if (currentGroup.type !== null) result.push({ text: currentGroup.text, type: currentGroup.type });
+        currentGroup = { text: token.text, type: token.type, separator: '' };
       }
     }
-    if (currentGroup.type !== null) result.push({ ...currentGroup });
+
+    if (currentGroup.type !== null) result.push({ text: currentGroup.text, type: currentGroup.type });
     return result;
   };
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      {step !== 'input' && (
         <>
-          <p className="mb-1 font-semibold">
-            {step === 'amount' && (
-              <>
-                1: Select the amount in the message
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={handleNextStep}
-                  style={{ marginLeft: '8px' }}
-                >
-                  Step 2
-                </Button>
-              </>
-            )}
-            {step === 'merchant' && (
-              <>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={previousStep}
-                  style={{ marginRight: '8px' }}
-                >
-                  Step 1
-                </Button>
-                2: Select the merchant or payee in the message
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={handleNextStep}
-                  style={{ marginLeft: '8px' }}
-                >
-                  Step 3
-                </Button>
-              </>
-            )}
-            {step === 'wildcards' && (
-              <>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={previousStep}
-                  style={{ marginRight: '8px' }}
-                >
-                  Step 2
-                </Button>
-                3: Select ALL the parts of the message that changes per message
-              </>
-            )}
-          </p>
-          <TokenSelector tokens={tokens} onSelect={handleSelect} />
+        <div style={{ display: 'flex', maxWidth: '100%' }}>
+          { approve && (
+          <>
+          <Button
+            variant={step === 'amount' ? 'contained' : 'outlined'}
+            color="secondary"
+            onClick={() => setStep('amount')}
+            style={{ paddingLeft: '5px', paddingRight: '5px' }}
+          >
+            Amount
+          </Button>
+          <Button
+            variant={step === 'merchant' ? 'contained' : 'outlined'}
+            color="secondary"
+            onClick={() => setStep('merchant')}
+            style={{ paddingLeft: '5px', paddingRight: '5px', marginLeft: '5px' }}
+          >
+            Payee
+          </Button>
+          </>
+          )}
+          <Button
+            variant={step === 'wildcards' ? 'contained' : 'outlined'}
+            color="secondary"
+            onClick={() => setStep('wildcards')}
+            style={{ paddingLeft: '5px', paddingRight: '5px', marginLeft: '5px' }}
+          >
+            Wildcards
+          </Button>
+          <IconButton
+              onClick={handleTestPattern}
+              title="Test Pattern"
+              color="info"
+            >
+              <TaskAltIcon />
+            </IconButton>
+        </div>
+        <TokenSelector tokens={tokens} onSelect={handleSelect} />
         </>
-      )}
     </div>
   );
 }
