@@ -59,7 +59,7 @@ You will need:
    - **Request Body:** \`Json\`
    - Tap **Add new field** of type text, fill one of the following each time. Important: Keep everything small letters:
      - **Key:** \`sms\`  
-       **Text:** Tap the text area, then select **Shortcut input from the top**. The click **shortcut input** again on the text area, then → choose **Message**
+       **Text:** Tap the text area, then select **Shortcut input from the top or from the select variable list in the bottom**. The click **shortcut input** again on the text area, then → choose **Message**
      - **Key:** \`email\`  
        **Text:** ${user.email || "Your gmail address"}
      - **Key:** \`sender\`  
