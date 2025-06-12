@@ -156,5 +156,25 @@ def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(
     parseMessages(email, [message], background_tasks)
     return {"status": "success", "message": "SMS saved successfully"}
 
+@app.get("/status")
+def status():
+    emails = get_emails()
+    hasTransactions = False
+    for email in emails:
+        if is_admin(email):
+            # get current date in epoch
+            to_date = int(datetime.now().timestamp())
+            # get from date as 30 days before today
+            from_date = to_date - 30 * 24 * 60 * 60
+            transactions = get_transactions(email, from_date, to_date)
+            if transactions:
+                hasTransactions = True
+                break
+            
+    if not hasTransactions:
+        raise HTTPException(status_code=503, detail="No transactions found in the last 30 days")
+
+    return {"status": "ok", "message": "Service is running"}
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=9000, reload=True)
