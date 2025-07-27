@@ -6,7 +6,7 @@ from models import AddTransactionReasonRequest, CategorizeTransactionRequest, Ge
 from fastapi import FastAPI, Security, HTTPException, BackgroundTasks, Depends, Path, Body, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from parser import parseMessages, extract_sms_details, executor
-from db import get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, unprocess_message, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
+from db import get_categories, get_emails, get_patterns, get_senders, get_transactions, is_admin, read_messages, read_sms_from_last_30_days, unprocess_message, upsert_pattern, update_senders, delete_pattern, save_sms, add_transactions_db
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,6 +48,7 @@ def getEmail(credentials: HTTPAuthorizationCredentials = Security(jwt_bearer)) -
 @app.get("/help")
 @app.get("/patternsui")
 @app.get("/messagesui")
+@app.get("/categoryui")
 @app.get("/sendersui")
 def ui() -> str:
     return FileResponse(os.path.join("static", "expense-tracker", "index.html"))
@@ -155,6 +156,11 @@ def save_sms_endpoint(request: Request, email: str = Body(...), sms: str = Body(
     message = Message(sms=sms, sender=sender, timestamp=int(datetime.now().timestamp()), id=id)
     parseMessages(email, [message], background_tasks)
     return {"status": "success", "message": "SMS saved successfully"}
+
+@app.get("/category")
+def _get_categories(email = Security(getEmail)):
+    categories = get_categories(email)
+    return {"categories": categories}
 
 @app.get("/status")
 def status():

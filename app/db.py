@@ -1,5 +1,5 @@
 from typing import List
-from models import Category, Message, MessageStatus, Pattern, Sender, Transaction
+from models import Category, CategoryEntry, CategoryIcon, Message, MessageStatus, Pattern, Sender, Transaction
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -66,6 +66,37 @@ def read_sms_from_last_30_days(email):
         messages.append(doc.to_dict())
 
     return messages
+
+
+DEFAULT_CATEGORIES = [
+    CategoryEntry(category=Category.uncategorized, icon=CategoryIcon.Uncategorized, colorHex="#f0f0f0", default=True),
+    CategoryEntry(category=Category.travel, icon=CategoryIcon.Travel, colorHex="#ff6666", default=True),
+    CategoryEntry(category=Category.family, icon=CategoryIcon.Family, colorHex="#66ff66", default=True),
+    CategoryEntry(category=Category.food, icon=CategoryIcon.Food, colorHex="#ffcc00", default=True),
+    CategoryEntry(category=Category.friends, icon=CategoryIcon.Friends, colorHex="#66ccff", default=True),
+    CategoryEntry(category=Category.health, icon=CategoryIcon.Health, colorHex="#ff33cc", default=True),
+    CategoryEntry(category=Category.home, icon=CategoryIcon.Home, colorHex="#66ffcc", default=True),
+    CategoryEntry(category=Category.charity, icon=CategoryIcon.Charity, colorHex="#ff9933", default=True),
+    CategoryEntry(category=Category.shopping, icon=CategoryIcon.Shopping, colorHex="#ff6699", default=True),
+    CategoryEntry(category=Category.investment, icon=CategoryIcon.Investment, colorHex="#33ccff", default=True),
+    CategoryEntry(category=Category.entertainment, icon=CategoryIcon.Entertainment, colorHex="#cc33ff", default=True)
+]
+def get_categories(email: str):
+    category_collection = db.collection("category").document(email).collection("categories")
+    query = category_collection.order_by("category").stream()
+    categories = []
+
+    for doc in query:
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        categories.append(CategoryEntry(**doc_dict))
+
+    categories.extend(DEFAULT_CATEGORIES)
+
+    return categories
+
+def add_category(categoryEntry: CategoryEntry, email: str):
+    pass
 
 def add_sender(sender: Sender):
     sender_collection = db.collection("sender")
