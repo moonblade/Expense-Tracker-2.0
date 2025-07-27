@@ -47,3 +47,11 @@ SMS seems to be much more consistent, but reading sms data is not straight forwa
 
 - 2025-01-26
     - Adding a transactions page, with ignore/unignore and categorize buttons.
+
+- 2025-07-27
+    - Added new categories page for custom categories
+
+![categories2](https://github.com/user-attachments/assets/15d4edd5-e9bf-4ee6-b69f-74396256b881)
+
+![categories1](https://github.com/user-attachments/assets/cc4f6309-79a5-4f7a-9931-9f147176e6a2)
+
