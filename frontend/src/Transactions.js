@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Checkbox from "@mui/material/Checkbox"; // Import Checkbox component
-import AddIcon from "@mui/icons-material/Add"; // Import AddIcon for the button
-// import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import Checkbox from "@mui/material/Checkbox";
+import AddIcon from "@mui/icons-material/Add";
 import {
   Box,
   TextField,
@@ -46,30 +45,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Icons for categories
+// Import Material-UI icons dynamically
+import * as MuiIcons from '@mui/icons-material';
 import {
-  Flight as TravelIcon,
-  FamilyRestroom as FamilyIcon,
-  Restaurant as FoodIcon,
-  Group as FriendsIcon,
-  LocalHospital as HealthIcon,
-  Home as HomeIcon,
-  VolunteerActivism as CharityIcon,
-  ShoppingCart as ShoppingIcon,
-  TrendingUp as InvestmentIcon,
-  Theaters as EntertainmentIcon,
   HelpOutline as UncategorizedIcon,
 } from "@mui/icons-material";
 
-// Service functions for transactions
+// Service functions for transactions and categories
 import {
-    addTransaction,
+  addTransaction,
   addTransactionReason,
   categorizeTransaction,
   fetchTransactions,
   ignoreTransaction,
   processMessages,
   unignoreTransaction,
+  fetchCategories, // Add this import
 } from "./query.svc";
 
 // Predefined date range options
@@ -86,10 +77,7 @@ const predefinedRanges = [
 // A unified Date Range Picker component
 function DateRangePicker({ fromDate, toDate, setFromDate, setToDate }) {
   const [open, setOpen] = useState(false);
-  // Default to "current_month" so that when the dialog is opened,
-  // the default selection is current month.
   const [selectedOption, setSelectedOption] = useState("current_month");
-  // State for custom selection
   const [customFrom, setCustomFrom] = useState(fromDate);
   const [customTo, setCustomTo] = useState(toDate);
 
@@ -205,40 +193,15 @@ function DateRangePicker({ fromDate, toDate, setFromDate, setToDate }) {
   );
 }
 
-const categoryIcons = {
-  uncategorized: <UncategorizedIcon />,
-  travel: <TravelIcon />,
-  family: <FamilyIcon />,
-  food: <FoodIcon />,
-  friends: <FriendsIcon />,
-  health: <HealthIcon />,
-  home: <HomeIcon />,
-  charity: <CharityIcon />,
-  shopping: <ShoppingIcon />,
-  investment: <InvestmentIcon />,
-  entertainment: <EntertainmentIcon />,
-};
-
-const categoryColors = {
-  uncategorized: "#f0f0f0",
-  travel: "#ff6666",
-  family: "#66ff66",
-  food: "#ffcc00",
-  friends: "#66ccff",
-  health: "#ff33cc",
-  home: "#66ffcc",
-  charity: "#ff9933",
-  shopping: "#ff6699",
-  investment: "#33ccff",
-  entertainment: "#cc33ff",
-};
-
 const filterTypes = ["credit", "debit"];
 
 function Transactions() {
   const theme = useTheme();
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [categories, setCategories] = useState([]); // Add categories state
+  const [categoryIcons, setCategoryIcons] = useState({}); // Dynamic category icons
+  const [categoryColors, setCategoryColors] = useState({}); // Dynamic category colors
   const [total, setTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -250,22 +213,84 @@ function Transactions() {
   const [isCategoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [isReasonDialogOpen, setReasonDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const [isAddDialogOpen, setAddDialogOpen] = useState(false); // State for Add Transaction dialog
+  const [isAddDialogOpen, setAddDialogOpen] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
     amount: '',
     merchant: '',
     date: moment().toDate()
   });
-  const [showCheckboxes, setShowCheckboxes] = useState(false); // State to manage checkbox visibility
+  const [showCheckboxes, setShowCheckboxes] = useState(false);
 
   // Default date range: Current Month
   const [fromDate, setFromDate] = useState(moment().startOf("month").toDate());
   const [toDate, setToDate] = useState(moment().endOf("month").toDate());
 
-  // const navigate = useNavigate();
-  // const handleTransactionClick = (transaction) => {
-  //   navigate(`/messagesui?id=${transaction.id}`);
-  // };
+  // Helper function to get category icon
+  const getCategoryIcon = (iconName, colorHex, noInvert = true) => {
+    // Get the MUI icon component name
+    const muiIconName = iconName;
+    
+    // Dynamically get the icon component from MuiIcons
+    let IconComponent = MuiIcons[muiIconName];
+    if (!IconComponent) {
+      // If the icon doesn't exist, fallback to UncategorizedIcon
+      IconComponent = UncategorizedIcon;
+    }
+    
+    let iconProps = {
+      style: { 
+        color: theme.palette.getContrastText(colorHex || "#f0f0f0"),
+        fontSize: '20px' 
+      }
+    };
+    if (noInvert) {
+      iconProps.style.color = colorHex || "#f0f0f0"; // Use the provided color directly
+    }
+
+    return React.createElement(IconComponent, iconProps);
+  };
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await fetchCategories();
+        if (data && data.categories) {
+          setCategories(data.categories);
+          
+          // Build dynamic categoryIcons and categoryColors objects
+          const icons = {};
+          const colors = {};
+          
+          data.categories.forEach(category => {
+            const categoryKey = category.category.toLowerCase();
+            icons[categoryKey] = getCategoryIcon(category.icon, category.colorHex);
+            colors[categoryKey] = category.colorHex;
+          });
+          
+          // Add uncategorized as fallback
+          icons.uncategorized = <UncategorizedIcon />;
+          colors.uncategorized = "#f0f0f0";
+          
+          setCategoryIcons(icons);
+          setCategoryColors(colors);
+        } else {
+          console.error("Failed to fetch categories or no categories found");
+          // Set fallback categories
+          setCategoryIcons({ uncategorized: <UncategorizedIcon /> });
+          setCategoryColors({ uncategorized: "#f0f0f0" });
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        // Set fallback categories
+        setCategoryIcons({ uncategorized: <UncategorizedIcon /> });
+        setCategoryColors({ uncategorized: "#f0f0f0" });
+      }
+    };
+    
+    loadCategories();
+  // eslint-disable-next-line
+  }, []);
 
   useEffect(() => {
     const fetchAndSetTransactions = async () => {
@@ -281,10 +306,6 @@ function Transactions() {
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value.toLowerCase());
-  };
-
-  const handleFilterChange = (event) => {
-    setFilterCategory(event.target.value);
   };
 
   const handleTypeChange = (event) => {
@@ -308,7 +329,7 @@ function Transactions() {
     }
   };
 
-const handleIgnore = async (transaction) => {
+  const handleIgnore = async (transaction) => {
     let transactionsToDelete = selectedTransactions;
     if (transactionsToDelete.length === 0) {
       transactionsToDelete = [transaction];
@@ -332,7 +353,6 @@ const handleIgnore = async (transaction) => {
         }
       } catch (error) {
         console.error("Error updating transaction ignore status:", error);
-        // Show a toast or warning here
         alert(`Failed to update ignore status for transaction ${transaction.id}`);
       }
     });
@@ -340,12 +360,12 @@ const handleIgnore = async (transaction) => {
     setSelectedTransactions([]);
   };
 
-const handleCategorize = (transaction) => {
-  if (selectedTransactions.length === 0) {
-    setSelectedTransactions([transaction]);
-  }
-  setCategoryDialogOpen(true);
-};
+  const handleCategorize = (transaction) => {
+    if (selectedTransactions.length === 0) {
+      setSelectedTransactions([transaction]);
+    }
+    setCategoryDialogOpen(true);
+  };
 
   const handleReason = (transaction) => {
     setSelectedTransaction(transaction);
@@ -369,7 +389,7 @@ const handleCategorize = (transaction) => {
     .map((category) => ({
       name: category,
       value: Math.floor(categoryTotals[category]),
-      color: categoryColors[category] || "#000",
+      color: categoryColors[category.toLowerCase()] || "#000",
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -377,37 +397,36 @@ const handleCategorize = (transaction) => {
     setFilterCategory(filterCategory === category ? "all" : category);
   };
 
-const handleCategorySelect = (category) => {
-  if (selectedTransactions.length === 0) {
-    console.log("No transactions selected for categorization");
-    return;
-  }
-  
-  // Optimistically update the category locally
-  const updatedTransactions = transactions.map(transaction => {
-    if (selectedTransactions.includes(transaction)) {
-      return { ...transaction, category };
+  const handleCategorySelect = (category) => {
+    if (selectedTransactions.length === 0) {
+      console.log("No transactions selected for categorization");
+      return;
     }
-    return transaction;
-  });
-  setTransactions(updatedTransactions);
+    
+    // Optimistically update the category locally
+    const updatedTransactions = transactions.map(transaction => {
+      if (selectedTransactions.includes(transaction)) {
+        return { ...transaction, category };
+      }
+      return transaction;
+    });
+    setTransactions(updatedTransactions);
 
-  // Attempt to categorize transactions via API
-  selectedTransactions.forEach(async (transaction) => {
-    try {
-      await categorizeTransaction(transaction.id, category);
-    } catch (error) {
-      console.error("Error categorizing transaction:", error);
-      // Show a toast or warning here
-      alert(`Failed to categorize transaction ${transaction.id}`);
-    }
-  });
+    // Attempt to categorize transactions via API
+    selectedTransactions.forEach(async (transaction) => {
+      try {
+        await categorizeTransaction(transaction.id, category);
+      } catch (error) {
+        console.error("Error categorizing transaction:", error);
+        alert(`Failed to categorize transaction ${transaction.id}`);
+      }
+    });
 
-  setCategoryDialogOpen(false);
-  setSelectedTransactions([]);
-};
+    setCategoryDialogOpen(false);
+    setSelectedTransactions([]);
+  };
 
-const handleReasonSubmit = async () => {
+  const handleReasonSubmit = async () => {
     // Optimistically update the reason locally
     const updatedTransactions = transactions.map(transaction => {
       if (transaction.id === selectedTransaction.id) {
@@ -469,13 +488,12 @@ const handleReasonSubmit = async () => {
 
   const handleAddTransaction = async () => {
     try {
-      // Call the addTransaction function from query.svc.js
       await addTransaction({
         ...newTransaction,
         timestamp: moment().unix()
       });
       console.log("Transaction added successfully");
-      await handleRefreshTransactions(); // Refresh transactions after adding
+      await handleRefreshTransactions();
     } catch (error) {
       console.error("Error adding transaction:", error);
     } finally {
@@ -492,7 +510,6 @@ const handleReasonSubmit = async () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        // height: '100%',
         height: "calc(100vh - 120px)",
       }}
     >
@@ -562,8 +579,7 @@ const handleReasonSubmit = async () => {
                     mr: 1,
                   }}
                 />
-                { false && <Typography variant="body2">{item.name}</Typography> }
-                { true && <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography> }
+                <Typography variant="body2">{item.name} - ₹{item.value.toLocaleString("en-IN")}</Typography>
               </Box>
             ))}
           </Box>
@@ -577,8 +593,7 @@ const handleReasonSubmit = async () => {
       >
         {/* Search and Filter Section */}
         <Stack direction="column" spacing={2}>
-          {/* Search and Date Range Selector Section */}
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}> {/* Box for layout */}
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 220 }}>
               <TextField
                 variant="outlined"
@@ -600,25 +615,6 @@ const handleReasonSubmit = async () => {
             </FormControl>
           </Box>
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            { false &&
-            <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={filterCategory}
-                onChange={handleFilterChange}
-                label="Category"
-              >
-                <MenuItem value="all">All</MenuItem>
-                {Object.keys(categoryIcons)
-                  .sort((a, b) => (categoryTotals[b] || 0) - (categoryTotals[a] || 0))
-                  .map((key) => (
-                    <MenuItem key={key} value={key}>
-                      {capitalizeFirst(key)}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            }
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Type</InputLabel>
               <Select
@@ -667,7 +663,7 @@ const handleReasonSubmit = async () => {
               categoryIcons[categoryKey] || <UncategorizedIcon />,
               {
                 style: {
-                  color: theme.palette.getContrastText(categoryColors[categoryKey] || "#000"),
+                  color: theme.palette.getContrastText(categoryColors[categoryKey.toLowerCase()] || "#f0f0f0"),
                 },
               }
             );
@@ -686,7 +682,7 @@ const handleReasonSubmit = async () => {
                   />
                 )}
                 <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: categoryColors[categoryKey] }}>
+                  <Avatar sx={{ bgcolor: categoryColors[categoryKey.toLowerCase()] || "#f0f0f0" }}>
                     {IconElement}
                   </Avatar>
                 </ListItemAvatar>
@@ -764,20 +760,20 @@ const handleReasonSubmit = async () => {
         </List>
 
         {/* Category Dialog */}
-          <Dialog open={isCategoryDialogOpen} onClose={() => {
-            setCategoryDialogOpen(false);
-            setSelectedTransactions([]);
-          }}>
+        <Dialog open={isCategoryDialogOpen} onClose={() => {
+          setCategoryDialogOpen(false);
+          setSelectedTransactions([]);
+        }}>
           <DialogTitle>Select a Category</DialogTitle>
           <DialogContent sx={{ display: "flex", flexWrap: "wrap" }}>
-            {Object.keys(categoryIcons).map((key) => (
+            {categories.map((category) => (
               <Button
-                key={key}
-                onClick={() => handleCategorySelect(key)}
-                startIcon={categoryIcons[key]}
+                key={category.category}
+                onClick={() => handleCategorySelect(category.category)}
+                startIcon={getCategoryIcon(category.icon, category.colorHex, true)}
                 sx={{ m: 1 }}
               >
-                {capitalizeFirst(key)}
+                {capitalizeFirst(category.category)}
               </Button>
             ))}
           </DialogContent>
@@ -837,16 +833,6 @@ const handleReasonSubmit = async () => {
               onChange={(e) => setNewTransaction({ ...newTransaction, merchant: e.target.value })}
               sx={{ mb: 2 }}
             />
-            {false && 
-            <LocalizationProvider dateAdapter={AdapterMoment}>
-              <DatePicker
-                label="Date"
-                value={newTransaction.date}
-                onChange={(newValue) => setNewTransaction({ ...newTransaction, date: newValue })}
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
-            </LocalizationProvider>
-            }
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setAddDialogOpen(false)}>Cancel</Button>

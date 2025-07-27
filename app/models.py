@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Union
 from pydantic import BaseModel, Field
 import uuid
 
@@ -81,7 +81,7 @@ class Transaction(BaseModel):
     ignore: bool = False
     type: str = ""
     transactiontype: TransactionType = TransactionType.debit
-    category: Category = Category.uncategorized
+    category: Union[Category, str] = Category.uncategorized
     emailChecked: bool = False
     multipleMails: bool = False
     message: str = ""
@@ -106,7 +106,7 @@ class AddTransactionReasonRequest(BaseModel):
 
 class CategorizeTransactionRequest(BaseModel):
     transaction_id: str
-    category: Category
+    category: Union[Category, str]
 
 class GetTransactionRequest(BaseModel):
     from_date: int = 0
