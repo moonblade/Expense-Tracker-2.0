@@ -97,7 +97,7 @@ def checkMailForTransaction(transaction: Transaction):
 def update_category(transaction, existingtransaction=None):
     merchants = get_merchants()
     if transaction.merchant in merchants:
-        category = Category(merchants[transaction.merchant]["category"])
+        category = merchants[transaction.merchant]["category"]
         if category != Category.uncategorized:
             transaction.category = category
     if existingtransaction:
