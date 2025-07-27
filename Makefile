@@ -2,7 +2,7 @@ REACT_DIR = ./frontend
 STATIC_DIR = ./app/static/expense-tracker
 
 run:
-	make -C app run
+	make frontend & make -C app run
 
 build:
 	mkdir -p $(STATIC_DIR)

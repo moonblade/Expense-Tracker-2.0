@@ -1,5 +1,5 @@
 from typing import List
-from models import Category, CategoryEntry, CategoryIcon, Message, MessageStatus, Pattern, Sender, Transaction
+from models import Category, CategoryEntry, Message, MessageStatus, Pattern, Sender, Transaction
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -69,18 +69,19 @@ def read_sms_from_last_30_days(email):
 
 
 DEFAULT_CATEGORIES = [
-    CategoryEntry(category=Category.uncategorized, icon=CategoryIcon.Uncategorized, colorHex="#f0f0f0"),
-    CategoryEntry(category=Category.travel, icon=CategoryIcon.Travel, colorHex="#ff6666"),
-    CategoryEntry(category=Category.family, icon=CategoryIcon.Family, colorHex="#66ff66"),
-    CategoryEntry(category=Category.food, icon=CategoryIcon.Food, colorHex="#ffcc00"),
-    CategoryEntry(category=Category.friends, icon=CategoryIcon.Friends, colorHex="#66ccff"),
-    CategoryEntry(category=Category.health, icon=CategoryIcon.Health, colorHex="#ff33cc"),
-    CategoryEntry(category=Category.home, icon=CategoryIcon.Home, colorHex="#66ffcc"),
-    CategoryEntry(category=Category.charity, icon=CategoryIcon.Charity, colorHex="#ff9933"),
-    CategoryEntry(category=Category.shopping, icon=CategoryIcon.Shopping, colorHex="#ff6699"),
-    CategoryEntry(category=Category.investment, icon=CategoryIcon.Investment, colorHex="#33ccff"),
-    CategoryEntry(category=Category.entertainment, icon=CategoryIcon.Entertainment, colorHex="#cc33ff")
+    CategoryEntry(category=Category.uncategorized, icon="Category", colorHex="#f0f0f0", default=True),
+    CategoryEntry(category=Category.travel, icon="Flight", colorHex="#ff6666", default=True),
+    CategoryEntry(category=Category.family, icon="FamilyRestroom", colorHex="#66ff66", default=True),
+    CategoryEntry(category=Category.food, icon="Restaurant", colorHex="#ffcc00", default=True),
+    CategoryEntry(category=Category.friends, icon="People", colorHex="#66ccff", default=True),
+    CategoryEntry(category=Category.health, icon="LocalHospital", colorHex="#ff33cc", default=True),
+    CategoryEntry(category=Category.home, icon="Home", colorHex="#66ffcc", default=True),
+    CategoryEntry(category=Category.charity, icon="VolunteerActivism", colorHex="#ff9933", default=True),
+    CategoryEntry(category=Category.shopping, icon="ShoppingCart", colorHex="#ff6699", default=True),
+    CategoryEntry(category=Category.investment, icon="TrendingUp", colorHex="#33ccff", default=True),
+    CategoryEntry(category=Category.entertainment, icon="Movie", colorHex="#cc33ff", default=True)
 ]
+@cache
 def get_categories(email: str):
     category_collection = db.collection("category").document(email).collection("categories")
     query = category_collection.order_by("category").stream()
@@ -99,8 +100,28 @@ def get_categories(email: str):
 
     return categories
 
-def add_category(categoryEntry: CategoryEntry, email: str):
-    pass
+def upsert_category(categoryEntry: CategoryEntry, email: str):
+    if not categoryEntry:
+        return False
+    if not categoryEntry.category or not categoryEntry.icon or not categoryEntry.colorHex:
+        return False
+    category_collection = db.collection("category").document(email).collection("categories")
+    if categoryEntry.id and category_collection.document(categoryEntry.id).get().exists:
+        category_collection.document(categoryEntry.id).set(categoryEntry.dict())
+    else:
+        category_collection.add(categoryEntry.dict())
+    get_categories.cache_clear()
+    return True
+
+def delete_category(category: str, email: str):
+    category_collection = db.collection("category").document(email).collection("categories")
+    category_ref = category_collection.document(category)
+
+    if category_ref.get().exists:
+        category_ref.delete()
+        get_categories.cache_clear()
+        return True
+    return False
 
 def add_sender(sender: Sender):
     sender_collection = db.collection("sender")

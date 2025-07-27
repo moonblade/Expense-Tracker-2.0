@@ -363,3 +363,50 @@ export const fetchCategories = async () => {
     return [];
   }
 }
+
+export const upsertCategory = async (categoryEntry) => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/category`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        'Content-Type': "application/json",
+      },
+      body: JSON.stringify(categoryEntry),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
+export const deleteCategory = async (categoryName) => {
+  try {
+    const idToken = await getIdToken();
+    const response = await fetch(`${API_BASE_URL}/category/${encodeURIComponent(categoryName)}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        'Content-Type': "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete category");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    return { success: false, error: error.message };
+  }
+};

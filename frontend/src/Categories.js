@@ -13,14 +13,13 @@ import {
   DialogActions, 
   TextField, 
   Box,
-  Chip,
   Avatar,
   Fab
 } from '@mui/material';
 import * as MuiIcons from '@mui/icons-material';
 import React from 'react';
 import { ChromePicker } from 'react-color';
-import { fetchCategories } from './query.svc';
+import { fetchCategories, upsertCategory, deleteCategory } from './query.svc';
 
 function Categories() {
   const [categories, setCategories] = React.useState([]);
@@ -32,8 +31,10 @@ function Categories() {
     icon: '',
     colorHex: '#000000'
   });
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(null); // Track which category is being deleted
 
-  React.useEffect(() => {
+  const refreshCategories = () => {
     fetchCategories().then(data => {
       if (data && data.categories) {
         setCategories(data.categories);
@@ -44,6 +45,11 @@ function Categories() {
     }).catch(error => {
       console.error("Error fetching categories:", error);
     });
+  };
+
+
+  React.useEffect(() => {
+    refreshCategories();
   }, []);
 
   const handleOpenDialog = (category = null) => {
@@ -51,6 +57,7 @@ function Categories() {
       setEditMode(true);
       setCurrentCategory(category);
       setFormData({
+        id: category.id,
         category: category.category,
         icon: category.icon,
         colorHex: category.colorHex
@@ -92,43 +99,71 @@ function Categories() {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     console.log('Saving category:', formData);
+    setIsLoading(true);
     
-    if (editMode) {
-      setCategories(prev => prev.map(cat => 
-        cat.category === currentCategory.category 
-          ? { ...cat, ...formData }
-          : cat
-      ));
-    } else {
-      const newCategory = {
-        ...formData,
-        default: false
-      };
-      setCategories(prev => [...prev, newCategory]);
+    try {
+      const result = await upsertCategory(formData);
+      
+      if (result && result.status === 'success') {
+        if (editMode) {
+          setCategories(prev => prev.map(cat => 
+            cat.category === currentCategory.category 
+              ? { ...cat, ...formData }
+              : cat
+          ));
+        } else {
+          setCategories(prev => [...prev, formData]);
+        }
+        
+        console.log(`Category ${editMode ? 'updated' : 'added'} successfully`);
+        handleCloseDialog();
+      } else {
+        console.error('Failed to save category:', result?.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error saving category:', error);
+    } finally {
+      setIsLoading(false);
+      refreshCategories(); // Refresh categories after save
     }
+  };
+
+  const handleDelete = async (categoryId) => {
+    setIsDeleting(categoryId);
     
-    handleCloseDialog();
+    try {
+      const result = await deleteCategory(categoryId);
+      
+      if (result && result.status === 'success') {
+        // Remove the category from local state
+        setCategories(prev => prev.filter(cat => cat.category !== categoryId));
+        console.log('Category deleted successfully');
+      } else {
+        console.error('Failed to delete category:', result?.message || 'Unknown error');
+        // You might want to show an error message to the user here
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsDeleting(null);
+      refreshCategories(); // Refresh categories after delete
+    }
   };
 
   const getCategoryIcon = (iconName, colorHex) => {
-    // Get the MUI icon component name
     const muiIconName = iconName;
-    
-    // Dynamically get the icon component from MuiIcons
     let IconComponent = MuiIcons[muiIconName];
     if (!IconComponent) {
-      // If the icon doesn't exist, fallback to Category icon
       IconComponent = MuiIcons.Category;
     }
     
-    // If the icon doesn't exist, fallback to Category icon
     const FallbackIcon = MuiIcons.Category;
-    
     const iconProps = {
       style: { 
-        color: '#000000', // Black icon
+        color: '#000000',
         fontSize: '20px' 
       }
     };
@@ -138,7 +173,7 @@ function Categories() {
     return (
       <Avatar
         sx={{
-          backgroundColor: colorHex, // Colored background
+          backgroundColor: colorHex,
           width: 36,
           height: 36,
           display: 'flex',
@@ -159,7 +194,6 @@ function Categories() {
         height: "calc(100vh - 120px)",
       }}
     >
-      {/* Header with Add button */}
       <Box
         sx={{
           display: 'flex',
@@ -177,48 +211,45 @@ function Categories() {
         >
           <MuiIcons.Add />
         </Fab>
-        
       </Box>
 
-      {/* Categories List */}
       <Box sx={{ flex: '1 1 auto', overflow: 'auto' }}>
         <List>
           {categories.map((category) => (
             <ListItem
               key={category.category}
-              sx={{
-                mb: 1,
-              }}
+              sx={{ mb: 1 }}
               secondaryAction={
-                (
+                <Box sx={{ display: 'flex', gap: 1 }}>
                   <IconButton
                     edge="end"
                     onClick={() => handleOpenDialog(category)}
                     sx={{ color: '#666' }}
+                    disabled={isDeleting === category.category}
                   >
                     <MuiIcons.Edit />
                   </IconButton>
-                )
+                  {category.id && (
+                    <IconButton
+                      edge="end"
+                      onClick={() => handleDelete(category.id)}
+                      sx={{ color: '#d32f2f' }}
+                      disabled={isDeleting === category.id}
+                    >
+                      <MuiIcons.Delete />
+                    </IconButton>
+                  )}
+                </Box>
               }
             >
-              <ListItemIcon sx={{ }}>
+              <ListItemIcon>
                 {getCategoryIcon(category.icon, category.colorHex)}
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
-                      {category.category}
-                    </Typography>
-                    {category.default && (
-                      <Chip
-                        size="small"
-                        label="Default"
-                        variant="outlined"
-                        sx={{ fontSize: '0.7rem' }}
-                      />
-                    )}
-                  </Box>
+                  <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
+                    {category.category}
+                  </Typography>
                 }
               />
             </ListItem>
@@ -226,7 +257,6 @@ function Categories() {
         </List>
       </Box>
 
-      {/* Add/Edit Dialog */}
       <Dialog 
         open={dialogOpen} 
         onClose={handleCloseDialog}
@@ -268,15 +298,15 @@ function Categories() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>
+          <Button onClick={handleCloseDialog} disabled={isLoading}>
             Cancel
           </Button>
           <Button 
             onClick={handleSave}
             variant="contained"
-            disabled={!formData.category.trim() || !formData.icon.trim()}
+            disabled={!formData.category.trim() || !formData.icon.trim() || isLoading}
           >
-            {editMode ? 'Update' : 'Add'}
+            {isLoading ? 'Saving...' : (editMode ? 'Update' : 'Add')}
           </Button>
         </DialogActions>
       </Dialog>

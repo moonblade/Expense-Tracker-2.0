@@ -63,23 +63,12 @@ class Category(str, Enum):
     investment = "investment"
     entertainment = "entertainment"
 
-class CategoryIcon(str, Enum):
-    Uncategorized = "Category"
-    Travel = "Flight"
-    Family = "FamilyRestroom"
-    Food = "Restaurant"
-    Friends = "People"
-    Health = "LocalHospital"
-    Home = "Home"
-    Charity = "VolunteerActivism"
-    Shopping = "ShoppingCart"
-    Investment = "TrendingUp"
-    Entertainment = "Movie"
-
 class CategoryEntry(BaseModel):
+    id: str = ""
     category: str = ""
-    icon: CategoryIcon = CategoryIcon.Uncategorized
+    icon: str = ""
     colorHex: str = "#000000"
+    default: bool = False
 
 class Transaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
