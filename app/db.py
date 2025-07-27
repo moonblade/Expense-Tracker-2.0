@@ -69,17 +69,17 @@ def read_sms_from_last_30_days(email):
 
 
 DEFAULT_CATEGORIES = [
-    CategoryEntry(category=Category.uncategorized, icon=CategoryIcon.Uncategorized, colorHex="#f0f0f0", default=True),
-    CategoryEntry(category=Category.travel, icon=CategoryIcon.Travel, colorHex="#ff6666", default=True),
-    CategoryEntry(category=Category.family, icon=CategoryIcon.Family, colorHex="#66ff66", default=True),
-    CategoryEntry(category=Category.food, icon=CategoryIcon.Food, colorHex="#ffcc00", default=True),
-    CategoryEntry(category=Category.friends, icon=CategoryIcon.Friends, colorHex="#66ccff", default=True),
-    CategoryEntry(category=Category.health, icon=CategoryIcon.Health, colorHex="#ff33cc", default=True),
-    CategoryEntry(category=Category.home, icon=CategoryIcon.Home, colorHex="#66ffcc", default=True),
-    CategoryEntry(category=Category.charity, icon=CategoryIcon.Charity, colorHex="#ff9933", default=True),
-    CategoryEntry(category=Category.shopping, icon=CategoryIcon.Shopping, colorHex="#ff6699", default=True),
-    CategoryEntry(category=Category.investment, icon=CategoryIcon.Investment, colorHex="#33ccff", default=True),
-    CategoryEntry(category=Category.entertainment, icon=CategoryIcon.Entertainment, colorHex="#cc33ff", default=True)
+    CategoryEntry(category=Category.uncategorized, icon=CategoryIcon.Uncategorized, colorHex="#f0f0f0"),
+    CategoryEntry(category=Category.travel, icon=CategoryIcon.Travel, colorHex="#ff6666"),
+    CategoryEntry(category=Category.family, icon=CategoryIcon.Family, colorHex="#66ff66"),
+    CategoryEntry(category=Category.food, icon=CategoryIcon.Food, colorHex="#ffcc00"),
+    CategoryEntry(category=Category.friends, icon=CategoryIcon.Friends, colorHex="#66ccff"),
+    CategoryEntry(category=Category.health, icon=CategoryIcon.Health, colorHex="#ff33cc"),
+    CategoryEntry(category=Category.home, icon=CategoryIcon.Home, colorHex="#66ffcc"),
+    CategoryEntry(category=Category.charity, icon=CategoryIcon.Charity, colorHex="#ff9933"),
+    CategoryEntry(category=Category.shopping, icon=CategoryIcon.Shopping, colorHex="#ff6699"),
+    CategoryEntry(category=Category.investment, icon=CategoryIcon.Investment, colorHex="#33ccff"),
+    CategoryEntry(category=Category.entertainment, icon=CategoryIcon.Entertainment, colorHex="#cc33ff")
 ]
 def get_categories(email: str):
     category_collection = db.collection("category").document(email).collection("categories")
@@ -91,7 +91,11 @@ def get_categories(email: str):
         doc_dict["id"] = doc.id
         categories.append(CategoryEntry(**doc_dict))
 
-    categories.extend(DEFAULT_CATEGORIES)
+    # Instead of extending, if any of the default categories already exist, we will not add them again
+    existing_categories = {cat.category: cat for cat in categories}
+    for default_category in DEFAULT_CATEGORIES:
+        if default_category.category not in existing_categories:
+            categories.append(default_category)
 
     return categories
 
