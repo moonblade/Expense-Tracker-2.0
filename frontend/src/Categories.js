@@ -14,16 +14,19 @@ import {
   TextField, 
   Box,
   Avatar,
-  Fab
+  Fab,
+  InputAdornment
 } from '@mui/material';
 import * as MuiIcons from '@mui/icons-material';
 import React from 'react';
 import { ChromePicker } from 'react-color';
 import { fetchCategories, upsertCategory, deleteCategory } from './query.svc';
+import IconPicker from './IconPicker'; // Import the new component
 
 function Categories() {
   const [categories, setCategories] = React.useState([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [iconPickerOpen, setIconPickerOpen] = React.useState(false); // New state for icon picker
   const [editMode, setEditMode] = React.useState(false);
   const [currentCategory, setCurrentCategory] = React.useState(null);
   const [formData, setFormData] = React.useState({
@@ -32,7 +35,7 @@ function Categories() {
     colorHex: '#000000'
   });
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isDeleting, setIsDeleting] = React.useState(null); // Track which category is being deleted
+  const [isDeleting, setIsDeleting] = React.useState(null);
 
   const refreshCategories = () => {
     fetchCategories().then(data => {
@@ -46,7 +49,6 @@ function Categories() {
       console.error("Error fetching categories:", error);
     });
   };
-
 
   React.useEffect(() => {
     refreshCategories();
@@ -99,6 +101,13 @@ function Categories() {
     }));
   };
 
+  const handleIconSelect = (iconName) => {
+    setFormData(prev => ({
+      ...prev,
+      icon: iconName
+    }));
+  };
+
   const handleSave = async () => {
     console.log('Saving category:', formData);
     setIsLoading(true);
@@ -126,7 +135,7 @@ function Categories() {
       console.error('Error saving category:', error);
     } finally {
       setIsLoading(false);
-      refreshCategories(); // Refresh categories after save
+      refreshCategories();
     }
   };
 
@@ -137,19 +146,16 @@ function Categories() {
       const result = await deleteCategory(categoryId);
       
       if (result && result.status === 'success') {
-        // Remove the category from local state
         setCategories(prev => prev.filter(cat => cat.category !== categoryId));
         console.log('Category deleted successfully');
       } else {
         console.error('Failed to delete category:', result?.message || 'Unknown error');
-        // You might want to show an error message to the user here
       }
     } catch (error) {
       console.error('Error deleting category:', error);
-      // You might want to show an error message to the user here
     } finally {
       setIsDeleting(null);
-      refreshCategories(); // Refresh categories after delete
+      refreshCategories();
     }
   };
 
@@ -184,6 +190,14 @@ function Categories() {
         <ActualIcon {...iconProps} />
       </Avatar>
     );
+  };
+
+  // Get the selected icon component for preview
+  const getSelectedIconPreview = () => {
+    if (!formData.icon) return null;
+    const IconComponent = MuiIcons[formData.icon];
+    if (!IconComponent) return null;
+    return <IconComponent sx={{ fontSize: 20 }} />;
   };
 
   return (
@@ -257,6 +271,7 @@ function Categories() {
         </List>
       </Box>
 
+      {/* Main Dialog */}
       <Dialog 
         open={dialogOpen} 
         onClose={handleCloseDialog}
@@ -276,13 +291,28 @@ function Categories() {
               variant="outlined"
             />
             
+            {/* Icon Selection Field */}
             <TextField
-              label="Icon Name"
+              label="Icon"
               value={formData.icon}
-              onChange={(e) => handleInputChange('icon', e.target.value)}
               fullWidth
               variant="outlined"
-              helperText="Enter the icon name for this category"
+              helperText="Click the icon button to select an icon"
+              InputProps={{
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setIconPickerOpen(true)}
+                      edge="end"
+                    >
+                      {getSelectedIconPreview() || <MuiIcons.Search />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              onClick={() => setIconPickerOpen(true)}
+              sx={{ cursor: 'pointer' }}
             />
             
             <Box>
@@ -310,6 +340,14 @@ function Categories() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Icon Picker Dialog */}
+      <IconPicker
+        open={iconPickerOpen}
+        onClose={() => setIconPickerOpen(false)}
+        onSelect={handleIconSelect}
+        selectedIcon={formData.icon}
+      />
     </Container>
   );
 }
