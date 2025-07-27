@@ -19,20 +19,20 @@ import {
 } from '@mui/material';
 import * as MuiIcons from '@mui/icons-material';
 import React from 'react';
-import { ChromePicker } from 'react-color';
 import { fetchCategories, upsertCategory, deleteCategory } from './query.svc';
-import IconPicker from './IconPicker'; // Import the new component
+import IconPicker from './IconPicker';
+import ColorPalette from './ColorPalette'; // Import the new component
 
 function Categories() {
   const [categories, setCategories] = React.useState([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [iconPickerOpen, setIconPickerOpen] = React.useState(false); // New state for icon picker
+  const [iconPickerOpen, setIconPickerOpen] = React.useState(false);
   const [editMode, setEditMode] = React.useState(false);
   const [currentCategory, setCurrentCategory] = React.useState(null);
   const [formData, setFormData] = React.useState({
     category: '',
     icon: '',
-    colorHex: '#000000'
+    colorHex: '#FFB6C1' // Default to a nice pastel pink
   });
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(null);
@@ -70,7 +70,7 @@ function Categories() {
       setFormData({
         category: '',
         icon: '',
-        colorHex: '#000000'
+        colorHex: '#FFB6C1' // Default to a nice pastel pink
       });
     }
     setDialogOpen(true);
@@ -83,7 +83,7 @@ function Categories() {
     setFormData({
       category: '',
       icon: '',
-      colorHex: '#000000'
+      colorHex: '#FFB6C1'
     });
   };
 
@@ -94,10 +94,10 @@ function Categories() {
     }));
   };
 
-  const handleColorChange = (color) => {
+  const handleColorSelect = (color) => {
     setFormData(prev => ({
       ...prev,
-      colorHex: color.hex
+      colorHex: color
     }));
   };
 
@@ -315,16 +315,11 @@ function Categories() {
               sx={{ cursor: 'pointer' }}
             />
             
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                Choose Color
-              </Typography>
-              <ChromePicker
-                color={formData.colorHex}
-                onChange={handleColorChange}
-                disableAlpha
-              />
-            </Box>
+            {/* Color Palette - Replace ChromePicker */}
+            <ColorPalette
+              selectedColor={formData.colorHex}
+              onColorSelect={handleColorSelect}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
