@@ -18,6 +18,8 @@ import Help from './Help';
 import LoginContext from './LoginContext';
 import { AuthenticationContext, SessionContext } from '@toolpad/core/AppProvider';
 import SignIn from './SignIn';
+import { Category } from '@mui/icons-material';
+import Categories from './Categories';
 
 const NAVIGATION = [
   {
@@ -48,6 +50,11 @@ const NAVIGATION = [
     title: 'Transactions',
     icon: <MonetizationOnIcon />,
   },
+  {
+    segment: 'categoryui',
+    title: 'Categories',
+    icon: <Category />
+  }
 ];
 
 const demoTheme = createTheme({
@@ -81,6 +88,7 @@ function PageContent({ pathname }) {
       {pathname === '/patternsui' && <Pattern />}
       {pathname === '/messagesui' && <Messages />}
       {pathname === '/transactionsui' && <Transactions />}
+      {pathname === '/categoryui' && <Categories />}
       {pathname === '/help' && <Help />}
     </Box>
   );

@@ -1,5 +1,5 @@
 from typing import List
-from models import Category, Message, MessageStatus, Pattern, Sender, Transaction
+from models import Category, CategoryEntry, Message, MessageStatus, Pattern, Sender, Transaction
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 import datetime
@@ -66,6 +66,62 @@ def read_sms_from_last_30_days(email):
         messages.append(doc.to_dict())
 
     return messages
+
+
+DEFAULT_CATEGORIES = [
+    CategoryEntry(category=Category.uncategorized, icon="Category", colorHex="#f0f0f0", default=True),
+    CategoryEntry(category=Category.travel, icon="Flight", colorHex="#ff6666", default=True),
+    CategoryEntry(category=Category.family, icon="FamilyRestroom", colorHex="#66ff66", default=True),
+    CategoryEntry(category=Category.food, icon="Restaurant", colorHex="#ffcc00", default=True),
+    CategoryEntry(category=Category.friends, icon="People", colorHex="#66ccff", default=True),
+    CategoryEntry(category=Category.health, icon="LocalHospital", colorHex="#ff33cc", default=True),
+    CategoryEntry(category=Category.home, icon="Home", colorHex="#66ffcc", default=True),
+    CategoryEntry(category=Category.charity, icon="VolunteerActivism", colorHex="#ff9933", default=True),
+    CategoryEntry(category=Category.shopping, icon="ShoppingCart", colorHex="#ff6699", default=True),
+    CategoryEntry(category=Category.investment, icon="TrendingUp", colorHex="#33ccff", default=True),
+    CategoryEntry(category=Category.entertainment, icon="Movie", colorHex="#cc33ff", default=True)
+]
+@cache
+def get_categories(email: str):
+    category_collection = db.collection("category").document(email).collection("categories")
+    query = category_collection.order_by("category").stream()
+    categories = []
+
+    for doc in query:
+        doc_dict = doc.to_dict()
+        doc_dict["id"] = doc.id
+        categories.append(CategoryEntry(**doc_dict))
+
+    # Instead of extending, if any of the default categories already exist, we will not add them again
+    existing_categories = {cat.category: cat for cat in categories}
+    for default_category in DEFAULT_CATEGORIES:
+        if default_category.category not in existing_categories:
+            categories.append(default_category)
+
+    return categories
+
+def upsert_category(categoryEntry: CategoryEntry, email: str):
+    if not categoryEntry:
+        return False
+    if not categoryEntry.category or not categoryEntry.icon or not categoryEntry.colorHex:
+        return False
+    category_collection = db.collection("category").document(email).collection("categories")
+    if categoryEntry.id and category_collection.document(categoryEntry.id).get().exists:
+        category_collection.document(categoryEntry.id).set(categoryEntry.dict())
+    else:
+        category_collection.add(categoryEntry.dict())
+    get_categories.cache_clear()
+    return True
+
+def delete_category(category: str, email: str):
+    category_collection = db.collection("category").document(email).collection("categories")
+    category_ref = category_collection.document(category)
+
+    if category_ref.get().exists:
+        category_ref.delete()
+        get_categories.cache_clear()
+        return True
+    return False
 
 def add_sender(sender: Sender):
     sender_collection = db.collection("sender")
